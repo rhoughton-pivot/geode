@@ -49,6 +49,7 @@ resources:
 groups:
 - name: main
   jobs:
+  - CheckResource
   - Build
   - DistributedTest
   - AcceptanceTest
