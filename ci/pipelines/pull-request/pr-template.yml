@@ -86,22 +86,3 @@ jobs:
               path: geode-unmerged-request
               context: $BUILD_JOB_NAME
               status: success
-
-        ensure:
-          aggregate:
-          - task: archive-results
-            image: docker-geode-build-image
-            config:
-              inputs:
-                - name: geode-pr
-                - name: built-geode
-              platform: linux
-              params:
-                MAINTENANCE_VERSION: (( grab metadata.geode-build-branch ))
-                SERVICE_ACCOUNT: ((!concourse-gcp-account))
-                PUBLIC_BUCKET: ((!public-bucket))
-              run:
-                args:
-                - (( grab metadata.job.gradle_task ))
-                - (( grab metadata.job.artifact_slug ))
-                path: geode-pr/ci/scripts/test-archive.sh

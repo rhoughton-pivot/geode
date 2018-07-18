@@ -226,24 +226,6 @@ jobs:
           - distributedtestcore
           path: geode-pr/ci/scripts/test-run.sh
 
-      ensure:
-        aggregate:
-        - task: archive-results-core
-          image: docker-geode-build-image
-          config:
-            inputs:
-              - name: geode-pr
-              - name: built-geode
-            platform: linux
-            params:
-              MAINTENANCE_VERSION: (( grab metadata.geode-build-branch ))
-              SERVICE_ACCOUNT: ((!concourse-gcp-account))
-              PUBLIC_BUCKET: ((!public-bucket))
-            run:
-              args:
-              - geode-core:distributedTest
-              - distributedtestcore
-              path: geode-pr/ci/scripts/test-archive.sh
     - task: run-distributed-everything-else
       image: docker-geode-build-image
       tags: [pr_large]
@@ -269,24 +251,6 @@ jobs:
           - distributedTest
           - distributedtesteverythingelse
           path: geode-pr/ci/scripts/test-run.sh
-      ensure:
-        aggregate:
-        - task: archive-results-everythingelse
-          image: docker-geode-build-image
-          config:
-            inputs:
-              - name: geode-pr
-              - name: built-geode
-            platform: linux
-            params:
-              MAINTENANCE_VERSION: (( grab metadata.geode-build-branch ))
-              SERVICE_ACCOUNT: ((!concourse-gcp-account))
-              PUBLIC_BUCKET: ((!public-bucket))
-            run:
-              args:
-              - disitributedTest
-              - distributedtesteverythingelse
-              path: geode-pr/ci/scripts/test-archive.sh
     on_failure:
       aggregate:
       - put: geode-pr
