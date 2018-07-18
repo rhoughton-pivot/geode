@@ -80,23 +80,26 @@ jobs:
 
   # TODO Prhomberg: Do these actually need an aggregate: since there's only one thing?  The other jobs have it.
   on_failure:
-  - put: geode-pr
-    params:
-      path: geode-unmerged-request
-      status: failure
-      context: $BUILD_JOB_NAME
+    aggregate:
+    - put: geode-pr
+      params:
+        path: geode-unmerged-request
+        status: failure
+        context: $BUILD_JOB_NAME
   on_abort:
-  - put: geode-pr
-    params:
-      path: geode-unmerged-request
-      status: error
-      context: $BUILD_JOB_NAME
+    aggregate:
+    - put: geode-pr
+      params:
+        path: geode-unmerged-request
+        status: error
+        context: $BUILD_JOB_NAME
   on_success:
-  - put: geode-pr
-    params:
-      path: geode-unmerged-request
-      status: pending
-      context: $BUILD_JOB_NAME
+    aggregate:
+    - put: geode-pr
+      params:
+        path: geode-unmerged-request
+        status: success
+        context: $BUILD_JOB_NAME
 
 
 - name: Build
