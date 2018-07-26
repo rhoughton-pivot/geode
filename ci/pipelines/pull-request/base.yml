@@ -36,7 +36,7 @@ resources:
     repository: gcr.io/apachegeode-ci/((!docker-image-name))
     tag: latest
 
-- name: geode
+- name: geode-pr
   type: pull-request
   source:
     access_token: ((!github-pr-access-token))
@@ -49,6 +49,7 @@ resources:
 groups:
 - name: main
   jobs:
+  - CheckResource
   - Build
   - DistributedTest
   - AcceptanceTest
@@ -57,13 +58,59 @@ groups:
   - UITests
 
 jobs:
+- name: CheckResource
+  serial: false
+  max_in_flight: (( grab metadata.max_in_flight ))
+  public: true
+  plan:
+  - aggregate:
+    - get: geode-pr
+      trigger: true
+      version: every
+      params:
+        fetch_merge: true
+        git:
+          depth: 100
+  # Unmerged pull request SHA, for writing status into GitHub
+  - get: geode-unmerged-request
+    resource: geode-pr
+    version: every
+    params:
+      fetch_merge: false
+  # Update status to Failure / Error / Pending
+
+  # TODO Prhomberg: Do these actually need an aggregate: since there's only one thing?  The other jobs have it.
+  on_failure:
+    aggregate:
+    - put: geode-pr
+      params:
+        path: geode-unmerged-request
+        status: failure
+        context: $BUILD_JOB_NAME
+  on_abort:
+    aggregate:
+    - put: geode-pr
+      params:
+        path: geode-unmerged-request
+        status: error
+        context: $BUILD_JOB_NAME
+  on_success:
+    aggregate:
+    - put: geode-pr
+      params:
+        path: geode-unmerged-request
+        status: success
+        context: $BUILD_JOB_NAME
+
+
 - name: Build
   serial: false
   max_in_flight: (( grab metadata.max_in_flight ))
   public: true
   plan:
   - aggregate:
-    - get: geode
+    - get: geode-pr
+      passed: [CheckResource]
       trigger: true
       version: every
       params:
@@ -75,12 +122,13 @@ jobs:
         rootfs: true
   # Unmerged pull request SHA, for writing status into GitHub
   - get: geode-unmerged-request
-    resource: geode
+    passed: [CheckResource]
+    resource: geode-pr
     version: every
     params:
       fetch_merge: false
   - aggregate:
-    - put: geode
+    - put: geode-pr
       params:
         path: geode-unmerged-request
         context: $BUILD_JOB_NAME
@@ -92,7 +140,7 @@ jobs:
       config:
         platform: linux
         inputs:
-        - name: geode
+        - name: geode-pr
         outputs:
         - name: built-geode
         - name: results
@@ -101,17 +149,25 @@ jobs:
           SERVICE_ACCOUNT: ((!concourse-gcp-account))
           PUBLIC_BUCKET: ((!public-bucket))
         run:
-          path: geode/ci/scripts/build.sh
+          path: geode-pr/ci/scripts/build.sh
       on_failure:
         aggregate:
-          - put: geode
+          - put: geode-pr
             params:
               path: geode-unmerged-request
               status: failure
               context: $BUILD_JOB_NAME
+      # TODO Prhomberg: Does this only capture the box going brown?  Can we wrap an ensure: for if the box goes orange?
+      on_abort:
+        aggregate:
+        - put: geode-pr
+          params:
+            path: geode-unmerged-request
+            status: error
+            context: $BUILD_JOB_NAME
       on_success:
         aggregate:
-        - put: geode
+        - put: geode-pr
           params:
             path: geode-unmerged-request
             status: success
@@ -123,7 +179,8 @@ jobs:
   public: true
   plan:
   - aggregate:
-    - get: geode
+    - get: geode-pr
+      passed: [CheckResource]
       trigger: true
       version: every
       params:
@@ -135,13 +192,14 @@ jobs:
         rootfs: true
   # Unmerged pull request SHA, for writing status into GitHub
   - get: geode-unmerged-request
-    resource: geode
+    passed: [CheckResource]
+    resource: geode-pr
     version: every
     params:
       fetch_merge: false
 
   - aggregate:
-    - put: geode
+    - put: geode-pr
       params:
         path: geode-unmerged-request
         context: $BUILD_JOB_NAME
@@ -154,7 +212,7 @@ jobs:
       timeout: 8h
       config:
         inputs:
-          - name: geode
+          - name: geode-pr
           - name: docker-geode-build-image
         platform: linux
         outputs:
@@ -170,26 +228,8 @@ jobs:
           args:
           - geode-core:distributedTest
           - distributedtestcore
-          path: geode/ci/scripts/test-run.sh
+          path: geode-pr/ci/scripts/test-run.sh
 
-      ensure:
-        aggregate:
-        - task: archive-results-core
-          image: docker-geode-build-image
-          config:
-            inputs:
-              - name: geode
-              - name: built-geode
-            platform: linux
-            params:
-              MAINTENANCE_VERSION: (( grab metadata.geode-build-branch ))
-              SERVICE_ACCOUNT: ((!concourse-gcp-account))
-              PUBLIC_BUCKET: ((!public-bucket))
-            run:
-              args:
-              - geode-core:distributedTest
-              - distributedtestcore
-              path: geode/ci/scripts/test-archive.sh
     - task: run-distributed-everything-else
       image: docker-geode-build-image
       tags: [pr_large]
@@ -197,7 +237,7 @@ jobs:
       timeout: 8h
       config:
         inputs:
-          - name: geode
+          - name: geode-pr
           - name: docker-geode-build-image
         platform: linux
         outputs:
@@ -214,35 +254,24 @@ jobs:
           args:
           - distributedTest
           - distributedtesteverythingelse
-          path: geode/ci/scripts/test-run.sh
-      ensure:
-        aggregate:
-        - task: archive-results-everythingelse
-          image: docker-geode-build-image
-          config:
-            inputs:
-              - name: geode
-              - name: built-geode
-            platform: linux
-            params:
-              MAINTENANCE_VERSION: (( grab metadata.geode-build-branch ))
-              SERVICE_ACCOUNT: ((!concourse-gcp-account))
-              PUBLIC_BUCKET: ((!public-bucket))
-            run:
-              args:
-              - disitributedTest
-              - distributedtesteverythingelse
-              path: geode/ci/scripts/test-archive.sh
+          path: geode-pr/ci/scripts/test-run.sh
     on_failure:
       aggregate:
-      - put: geode
+      - put: geode-pr
         params:
           path: geode-unmerged-request
           status: failure
           context: $BUILD_JOB_NAME
+    on_abort:
+      aggregate:
+      - put: geode-pr
+        params:
+          path: geode-unmerged-request
+          status: error
+          context: $BUILD_JOB_NAME
     on_success:
       aggregate:
-      - put: geode
+      - put: geode-pr
         params:
           path: geode-unmerged-request
           context: $BUILD_JOB_NAME

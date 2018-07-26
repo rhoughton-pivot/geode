@@ -23,7 +23,8 @@ jobs:
   public: true
   plan:
     - aggregate:
-      - get: geode
+      - get: geode-pr
+        passed: [CheckResource]
         trigger: true
         version: every
         params:
@@ -35,12 +36,13 @@ jobs:
           rootfs: true
     # Unmerged pull request SHA, for writing status into GitHub
     - get: geode-unmerged-request
-      resource: geode
+      passed: [CheckResource]
+      resource: geode-pr
       version: every
       params:
         fetch_merge: false
     - aggregate:
-      - put: geode
+      - put: geode-pr
         params:
           path: geode-unmerged-request
           context: $BUILD_JOB_NAME
@@ -53,7 +55,7 @@ jobs:
         timeout: (( grab metadata.job.timeout ))
         config:
           inputs:
-            - name: geode
+            - name: geode-pr
             - name: docker-geode-build-image
           platform: linux
           outputs:
@@ -69,37 +71,18 @@ jobs:
             args:
             - (( grab metadata.job.gradle_task ))
             - (( grab metadata.job.artifact_slug ))
-            path: geode/ci/scripts/test-run.sh
+            path: geode-pr/ci/scripts/test-run.sh
         on_failure:
           aggregate:
-          - put: geode
+          - put: geode-pr
             params:
               path: geode-unmerged-request
               status: failure
               context: $BUILD_JOB_NAME
         on_success:
           aggregate:
-          - put: geode
+          - put: geode-pr
             params:
               path: geode-unmerged-request
               context: $BUILD_JOB_NAME
               status: success
-
-        ensure:
-          aggregate:
-          - task: archive-results
-            image: docker-geode-build-image
-            config:
-              inputs:
-                - name: geode
-                - name: built-geode
-              platform: linux
-              params:
-                MAINTENANCE_VERSION: (( grab metadata.geode-build-branch ))
-                SERVICE_ACCOUNT: ((!concourse-gcp-account))
-                PUBLIC_BUCKET: ((!public-bucket))
-              run:
-                args:
-                - (( grab metadata.job.gradle_task ))
-                - (( grab metadata.job.artifact_slug ))
-                path: geode/ci/scripts/test-archive.sh
