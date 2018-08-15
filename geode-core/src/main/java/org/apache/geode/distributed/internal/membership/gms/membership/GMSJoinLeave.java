@@ -65,6 +65,7 @@ import org.apache.geode.distributed.internal.membership.NetMember;
 import org.apache.geode.distributed.internal.membership.NetView;
 import org.apache.geode.distributed.internal.membership.gms.GMSMember;
 import org.apache.geode.distributed.internal.membership.gms.GMSUtil;
+import org.apache.geode.distributed.internal.membership.gms.ServiceConfig;
 import org.apache.geode.distributed.internal.membership.gms.Services;
 import org.apache.geode.distributed.internal.membership.gms.interfaces.JoinLeave;
 import org.apache.geode.distributed.internal.membership.gms.interfaces.MessageHandler;
@@ -600,7 +601,7 @@ public class GMSJoinLeave implements JoinLeave, MessageHandler {
     if (!isCoordinator && !isStopping && !services.getCancelCriterion().isCancelInProgress()) {
       logger.debug("Checking to see if I should become coordinator");
       NetView check = new NetView(v, v.getViewId() + 1);
-      check.remove(incomingRequest.getMemberID());
+      check.remove(mbr);
       synchronized (removedMembers) {
         check.removeAll(removedMembers);
         check.addCrashedMembers(removedMembers);
@@ -611,7 +612,7 @@ public class GMSJoinLeave implements JoinLeave, MessageHandler {
       }
       if (check.getCoordinator().equals(localAddress)) {
         synchronized (viewInstallationLock) {
-          becomeCoordinator(incomingRequest.getMemberID());
+          becomeCoordinator(mbr);
         }
       }
     } else {
@@ -1438,8 +1439,18 @@ public class GMSJoinLeave implements JoinLeave, MessageHandler {
       }
 
       if (!newView.getCreator().equals(this.localAddress)) {
-        if (newView.shouldBeCoordinator(this.localAddress)) {
-          becomeCoordinator();
+        NetView check = new NetView(newView, newView.getViewId() + 1);
+        synchronized (leftMembers) {
+          check.removeAll(leftMembers);
+        }
+        synchronized (removedMembers) {
+          check.removeAll(removedMembers);
+          check.addCrashedMembers(removedMembers);
+        }
+        if (check.shouldBeCoordinator(this.localAddress)) {
+          if (!isCoordinator) {
+            becomeCoordinator();
+          }
         } else if (this.isCoordinator) {
           // stop being coordinator
           stopCoordinatorServices();
@@ -1660,7 +1671,8 @@ public class GMSJoinLeave implements JoinLeave, MessageHandler {
       processRemoveRequest(msg);
       if (!this.isCoordinator) {
         msg.resetRecipients();
-        msg.setRecipients(v.getPreferredCoordinators(Collections.emptySet(), localAddress, 10));
+        msg.setRecipients(v.getPreferredCoordinators(Collections.emptySet(), localAddress,
+            ServiceConfig.SMALL_CLUSTER_SIZE + 1));
         services.getMessenger().send(msg);
       }
     } else {
