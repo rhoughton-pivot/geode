@@ -34,6 +34,7 @@ public class LuceneDistributedSystemService implements DistributedSystemService 
 
   @Override
   public Collection<String> getSerializationAcceptlist() throws IOException {
+    System.out.println("DOIT");
     URL sanctionedSerializables = ClassPathLoader.getLatest().getResource(getClass(),
         "sanctioned-geode-lucene-serializables.txt");
     return InternalDataSerializer.loadClassNames(sanctionedSerializables);
