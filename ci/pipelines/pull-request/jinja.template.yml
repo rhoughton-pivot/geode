@@ -21,18 +21,10 @@
 groups:
 - name: main
   jobs:
-  - Build
 {%- for test in tests if not test.name.startswith("Windows") %}
   - {{test.name}}Test
 {%- endfor %}
 resources:
-- name: docker-geode-build-image
-  type: docker-image
-  source:
-    password: ((!docker-password))
-    repository: gcr.io/((gcp-project))/((pipeline-prefix))((!docker-image-name))
-    tag: latest
-    username: ((!docker-username))
 - name: geode
   type: pull-request
   source:
