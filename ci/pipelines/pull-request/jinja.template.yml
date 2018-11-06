@@ -81,7 +81,7 @@ jobs:
         - put: pull-request-job-pending
           resource: geode
           params:
-            context: $BUILD_JOB_NAME
+            context: {{test.name}}Test
             path: geode
             status: pending
           get_params: {skip_download: true}
@@ -147,7 +147,7 @@ jobs:
       - put: pull-request-job-failure
         resource: geode
         params:
-          context: $BUILD_JOB_NAME
+          context: {{test.name}}Test
           path: geode
           status: failure
         get_params: {skip_download: true}
@@ -198,7 +198,7 @@ jobs:
       - put: pull-request-job-success
         resource: geode
         params:
-          context: $BUILD_JOB_NAME
+          context: {{test.name}}Test
           path: geode
           status: success
         get_params: {skip_download: true}
