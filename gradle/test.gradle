@@ -122,6 +122,7 @@ subprojects {
       exclude module: 'org.apache.ant'
     }
 
+    distributedTestRuntime(project(':geode-old-versions'))
     upgradeTestRuntime(project(':geode-old-versions'))
   }
 
