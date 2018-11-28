@@ -121,9 +121,6 @@ subprojects {
     testRuntime('cglib:cglib:' + project.'cglib.version') {
       exclude module: 'org.apache.ant'
     }
-
-    distributedTestRuntime(project(':geode-old-versions'))
-    upgradeTestRuntime(project(':geode-old-versions'))
   }
 
   configure([integrationTest, distributedTest, performanceTest, acceptanceTest, uiTest,
