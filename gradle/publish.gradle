@@ -181,7 +181,6 @@ subprojects {
         }
       }
     }
-
   }
   check.dependsOn('checkPom')
 
@@ -194,9 +193,9 @@ subprojects {
       from actualPomFile
       into expectedPomDir
       rename '.*.xml', "expected-pom.xml"
-
     }
   }
+  checkPom.mustRunAfter(updateExpectedPom)
 } // subprojects
 
 
