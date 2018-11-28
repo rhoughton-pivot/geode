@@ -148,6 +148,9 @@ dependencies {
     exclude module: 'geode-core'
   }
   testRuntime(project(':geode-old-versions'))
+  
+
+  acceptanceTestRuntime(project(':geode-old-versions'))
 
 
   integrationTestCompile(project(':geode-core'))
