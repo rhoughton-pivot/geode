@@ -314,6 +314,7 @@ dependencies {
   distributedTestCompile('pl.pragmatists:JUnitParams:' + project.'JUnitParams.version')
   distributedTestCompile('com.jayway.jsonpath:json-path-assert:' + project.'json-path-assert.version')
 
+  distributedTestRuntime(project(':geode-old-versions'))
   distributedTestRuntime('org.apache.derby:derby:' + project.'derby.version')
 
 
