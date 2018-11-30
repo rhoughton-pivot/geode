@@ -151,7 +151,7 @@ jobs:
       - task: rsync_code_down
         {{- alpine_tools_config()|indent(8) }}
           params:
-            JAVA_BUILD_VERSION: {{ java_build_version.version }}
+            JAVA_BUILD_VERSION: 8
             ARTIFACT_SLUG: {{build_test.ARTIFACT_SLUG}}
         run:
             path: geode-ci/ci/scripts/rsync_code_down.sh
