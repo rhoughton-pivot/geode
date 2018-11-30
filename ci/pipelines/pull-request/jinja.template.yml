@@ -153,7 +153,7 @@ jobs:
           params:
             JAVA_BUILD_VERSION: 8
             ARTIFACT_SLUG: {{build_test.ARTIFACT_SLUG}}
-        run:
+          run:
             path: geode-ci/ci/scripts/rsync_code_down.sh
           inputs:
           - name: geode
