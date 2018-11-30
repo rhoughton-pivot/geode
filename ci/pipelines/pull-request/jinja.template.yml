@@ -89,7 +89,7 @@ jobs:
         - put: concourse-metadata-resource
         - task: create_instance
           {{- alpine_tools_config()|indent(8) }}
-            params:
+          params:
             CPUS: {{build_test.CPUS}}
             RAM: {{build_test.RAM}}
             GCP_PROJECT: ((gcp-project))
