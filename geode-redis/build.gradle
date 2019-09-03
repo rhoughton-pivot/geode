@@ -20,15 +20,21 @@ apply from: "${rootDir}/${scriptDir}/standard-subproject-configuration.gradle"
 apply from: "${project.projectDir}/../gradle/publish.gradle"
 
 dependencies {
-  compile(platform(project(':boms:geode-all-bom')))
-  compile(project(':geode-core'))
-  compile('com.github.davidmoten:geo')
-  compile('io.netty:netty-all')
-  compile('org.apache.logging.log4j:log4j-api')
-  distributedTestCompile(project(':geode-dunit'))
-  integrationTestCompile('redis.clients:jedis')
-  distributedTestCompile('redis.clients:jedis')
-  testCompile('org.mockito:mockito-core')
-  testCompile(project(':geode-junit'))
-  integrationTestCompile(project(':geode-junit'))
+  implementation(platform(project(':boms:geode-all-bom')))
+  implementation(project(':geode-core'))
+  implementation('com.github.davidmoten:geo')
+  implementation('io.netty:netty-all')
+  implementation('org.apache.logging.log4j:log4j-api')
+
+
+  testImplementation(project(':geode-junit'))
+  testImplementation('org.mockito:mockito-core')
+
+
+  integrationTestImplementation(project(':geode-junit'))
+  integrationTestImplementation('redis.clients:jedis')
+
+
+  distributedTestImplementation(project(':geode-dunit'))
+  distributedTestImplementation('redis.clients:jedis')
 }

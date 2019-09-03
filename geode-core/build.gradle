@@ -293,6 +293,12 @@ dependencies {
   //Jetty is used by the http service, which is used for the developer and management rest APIs
   implementation('org.eclipse.jetty:jetty-server')
 
+  // Previously fetched from geode-management as a 'compile' dependency. We use it, so now we declare it.
+  implementation('org.apache.httpcomponents:httpclient')
+
+  // Previously fetched from geode-management as a 'compile' dependency. We use it, so now we declare it.
+  implementation('org.springframework:spring-web')
+
   //Spring core is used by the the gfsh cli
   implementation('org.springframework:spring-core') {
     ext.optional = true
@@ -341,21 +347,21 @@ dependencies {
 
   jcaCompile(sourceSets.main.output)
 
-  testCompile(project(':geode-junit')) {
+  testImplementation(project(':geode-junit')) {
     exclude module: 'geode-core'
   }
-  testCompile(project(':geode-concurrency-test'))
-  testCompile('org.apache.bcel:bcel')
-  testCompile('org.mockito:mockito-core')
-  testCompile('org.springframework:spring-test')
-  testCompile('com.pholser:junit-quickcheck-core')
-  testCompile('org.powermock:powermock-core')
-  testCompile('org.powermock:powermock-module-junit4')
-  testCompile('org.powermock:powermock-api-mockito2')
-  testCompile('pl.pragmatists:JUnitParams')
+  testImplementation(project(':geode-concurrency-test'))
+  testImplementation('org.apache.bcel:bcel')
+  testImplementation('org.mockito:mockito-core')
+  testImplementation('org.springframework:spring-test')
+  testImplementation('com.pholser:junit-quickcheck-core')
+  testImplementation('org.powermock:powermock-core')
+  testImplementation('org.powermock:powermock-module-junit4')
+  testImplementation('org.powermock:powermock-api-mockito2')
+  testImplementation('pl.pragmatists:JUnitParams')
   testImplementation('com.tngtech.archunit:archunit-junit4')
 
-  testCompile files("${System.getProperty('java.home')}/../lib/tools.jar")
+  testImplementation files("${System.getProperty('java.home')}/../lib/tools.jar")
 
   testRuntime('commons-collections:commons-collections')
   testRuntime('commons-configuration:commons-configuration')
@@ -364,48 +370,48 @@ dependencies {
   testRuntime('com.pholser:junit-quickcheck-generators')
 
 
-  integrationTestCompile(project(':geode-junit')) {
+  integrationTestImplementation(project(':geode-junit')) {
     exclude module: 'geode-core'
   }
-  integrationTestCompile(project(':geode-dunit')) {
+  integrationTestImplementation(project(':geode-dunit')) {
     exclude module: 'geode-core'
   }
-  integrationTestCompile(project(':geode-concurrency-test'))
-  integrationTestCompile('org.apache.bcel:bcel')
-  integrationTestCompile('org.apache.logging.log4j:log4j-core::tests')
-  integrationTestCompile('org.apache.logging.log4j:log4j-core::test-sources')
-  integrationTestCompile('org.powermock:powermock-core')
-  integrationTestCompile('org.powermock:powermock-module-junit4')
-  integrationTestCompile('org.powermock:powermock-api-mockito2')
-  integrationTestCompile('org.springframework:spring-test')
-  integrationTestCompile('pl.pragmatists:JUnitParams')
+  integrationTestImplementation(project(':geode-concurrency-test'))
+  integrationTestImplementation('org.apache.bcel:bcel')
+  integrationTestImplementation('org.apache.logging.log4j:log4j-core::tests')
+  integrationTestImplementation('org.apache.logging.log4j:log4j-core::test-sources')
+  integrationTestImplementation('org.powermock:powermock-core')
+  integrationTestImplementation('org.powermock:powermock-module-junit4')
+  integrationTestImplementation('org.powermock:powermock-api-mockito2')
+  integrationTestImplementation('org.springframework:spring-test')
+  integrationTestImplementation('pl.pragmatists:JUnitParams')
 
   integrationTestRuntime('org.apache.derby:derby')
   integrationTestRuntime('xerces:xercesImpl')
 
 
-  distributedTestCompile(project(':geode-junit')) {
+  distributedTestImplementation(project(':geode-junit')) {
     exclude module: 'geode-core'
   }
-  distributedTestCompile(project(':geode-dunit')) {
+  distributedTestImplementation(project(':geode-dunit')) {
     exclude module: 'geode-core'
   }
-  distributedTestCompile('pl.pragmatists:JUnitParams')
-  distributedTestCompile('com.jayway.jsonpath:json-path-assert')
-  distributedTestCompile('net.openhft:compiler')
+  distributedTestImplementation('pl.pragmatists:JUnitParams')
+  distributedTestImplementation('com.jayway.jsonpath:json-path-assert')
+  distributedTestImplementation('net.openhft:compiler')
 
   distributedTestRuntime(project(':geode-old-versions'))
   distributedTestRuntime('org.apache.derby:derby')
 
 
-  upgradeTestCompile(project(':geode-dunit')) {
+  upgradeTestImplementation(project(':geode-dunit')) {
     exclude module: 'geode-core'
   }
 
   upgradeTestRuntime(project(':geode-old-versions'))
 
 
-  performanceTestCompile(project(':geode-junit')) {
+  performanceTestImplementation(project(':geode-junit')) {
     exclude module: 'geode-core'
   }
 }

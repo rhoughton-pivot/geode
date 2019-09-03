@@ -21,33 +21,32 @@ apply from: "${project.projectDir}/../gradle/publish.gradle"
 
 
 dependencies {
-  compile(platform(project(':boms:geode-all-bom')))
-
   compileOnly(project(':geode-core'))
 
-  compile('com.fasterxml.jackson.core:jackson-annotations')
-  compile('com.fasterxml.jackson.core:jackson-databind')
-  compile('com.github.stefanbirkner:system-rules') {
+  implementation(platform(project(':boms:geode-all-bom')))
+  implementation('com.fasterxml.jackson.core:jackson-annotations')
+  implementation('com.fasterxml.jackson.core:jackson-databind')
+  implementation('com.github.stefanbirkner:system-rules') {
     exclude module: 'junit-dep'
   }
-  compile('com.google.guava:guava')
-  compile('com.jayway.jsonpath:json-path')
-  compile('commons-io:commons-io')
-  compile('junit:junit') {
+  implementation('com.google.guava:guava')
+  implementation('com.jayway.jsonpath:json-path')
+  implementation('commons-io:commons-io')
+  implementation('junit:junit') {
     exclude module: 'hamcrest-core'
   }
-  compile('org.apache.commons:commons-lang3')
-  compile('org.apache.logging.log4j:log4j-api')
-  compile('org.apache.logging.log4j:log4j-core')
-  compile('org.assertj:assertj-core')
-  compile('org.awaitility:awaitility')
-  compile('org.bouncycastle:bcpkix-jdk15on')
-  compile('org.hamcrest:hamcrest-all')
-  compile('io.micrometer:micrometer-core')
-  compile('org.mockito:mockito-core')
-  compile('org.skyscreamer:jsonassert')
+  implementation('org.apache.commons:commons-lang3')
+  implementation('org.apache.logging.log4j:log4j-api')
+  implementation('org.apache.logging.log4j:log4j-core')
+  implementation('org.assertj:assertj-core')
+  implementation('org.awaitility:awaitility')
+  implementation('org.bouncycastle:bcpkix-jdk15on')
+  implementation('org.hamcrest:hamcrest-all')
+  implementation('io.micrometer:micrometer-core')
+  implementation('org.mockito:mockito-core')
+  implementation('org.skyscreamer:jsonassert')
 
-  testCompile('pl.pragmatists:JUnitParams')
+  testImplementation('pl.pragmatists:JUnitParams')
 
   testRuntime(project(':geode-old-versions'))
 }

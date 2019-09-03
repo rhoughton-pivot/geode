@@ -24,22 +24,22 @@ evaluationDependsOn(":geode-core")
 
 
 dependencies {
-  compile(platform(project(':boms:geode-all-bom')))
-  compile(project(':extensions:geode-modules')) {
+  implementation(platform(project(':boms:geode-all-bom')))
+  implementation(project(':extensions:geode-modules')) {
     exclude group: 'org.apache.tomcat'
   }
 
-  compile('org.apache.tomcat:tomcat-catalina:' + DependencyConstraints.get('tomcat9.version')) {
+  implementation('org.apache.tomcat:tomcat-catalina:' + DependencyConstraints.get('tomcat9.version')) {
     exclude module: 'tomcat-annotations-api'
     exclude module: 'tomcat-servlet-api'
   }
-  compile('org.apache.tomcat:tomcat-coyote:' + DependencyConstraints.get('tomcat9.version')) {
+  implementation('org.apache.tomcat:tomcat-coyote:' + DependencyConstraints.get('tomcat9.version')) {
     exclude module: 'tomcat-servlet-api'
   }
-  compile('org.apache.tomcat:tomcat-juli:' + DependencyConstraints.get('tomcat9.version'))
-  compile('javax.servlet:javax.servlet-api:' + '3.1.0')
+  implementation('org.apache.tomcat:tomcat-juli:' + DependencyConstraints.get('tomcat9.version'))
+  implementation('javax.servlet:javax.servlet-api:' + '3.1.0')
 
-  distributedTestCompile(project(':extensions:geode-modules-test'))
+  distributedTestImplementation(project(':extensions:geode-modules-test'))
 
   distributedTestRuntime('xerces:xercesImpl')
   distributedTestRuntime('javax.annotation:javax.annotation-api')
@@ -50,4 +50,3 @@ eclipse.classpath.file {
     classpath.entries.removeAll { entry -> entry.path.contains('geode-modules/build')}
   }
 }
-

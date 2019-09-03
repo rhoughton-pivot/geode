@@ -20,10 +20,12 @@ apply from: "${rootDir}/${scriptDir}/standard-subproject-configuration.gradle"
 apply from: "${project.projectDir}/../gradle/publish.gradle"
 
 dependencies {
-  compile(platform(project(':boms:geode-all-bom')))
-  compile('junit:junit')
-  compile('org.apache.logging.log4j:log4j-api')
-  integrationTestCompile('org.assertj:assertj-core')
+  implementation(platform(project(':boms:geode-all-bom')))
+  implementation('junit:junit')
+
+  runtime('org.apache.logging.log4j:log4j-api')
+
+  integrationTestImplementation('org.assertj:assertj-core')
 }
 
 integrationTest {

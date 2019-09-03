@@ -21,27 +21,27 @@ apply from: "${project.projectDir}/../gradle/publish.gradle"
 
 
 dependencies {
-  compile(platform(project(':boms:geode-all-bom')))
-  compile(project(':geode-common'))
-  compile(project(':geode-core'))
-  integrationTestCompile(project(':geode-junit')) {
-    exclude module: 'geode-core'
-  }
-
-  compile('org.apache.logging.log4j:log4j-api')
-  compile('org.springframework:spring-context') {
+  implementation(platform(project(':boms:geode-all-bom')))
+  implementation(project(':geode-common'))
+  implementation(project(':geode-core'))
+  implementation('org.apache.logging.log4j:log4j-api')
+  implementation('org.springframework:spring-context') {
     exclude module: 'spring-beans'
     exclude module: 'spring-expression'
     exclude module: 'spring-aop'
   }
 
-  testCompile('junit:junit')
-  testCompile('org.assertj:assertj-core')
-  testCompile('org.mockito:mockito-core')
+  testImplementation('junit:junit')
+  testImplementation('org.assertj:assertj-core')
+  testImplementation('org.mockito:mockito-core')
 
-  integrationTestCompile('junit:junit')
-  integrationTestCompile('org.awaitility:awaitility')
-  integrationTestCompile('org.hamcrest:hamcrest-all')
-  integrationTestCompile('org.hamcrest:hamcrest-core')
-  integrationTestCompile('org.hamcrest:hamcrest-library')
+
+  integrationTestImplementation(project(':geode-junit')) {
+    exclude module: 'geode-core'
+  }
+  integrationTestImplementation('junit:junit')
+  integrationTestImplementation('org.awaitility:awaitility')
+  integrationTestImplementation('org.hamcrest:hamcrest-all')
+  integrationTestImplementation('org.hamcrest:hamcrest-core')
+  integrationTestImplementation('org.hamcrest:hamcrest-library')
 }

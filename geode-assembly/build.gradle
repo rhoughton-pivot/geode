@@ -184,6 +184,9 @@ dependencies {
   testCompile(project(':geode-junit')) {
     exclude module: 'geode-core'
   }
+  testImplementation('org.assertj:assertj-core')
+  testImplementation('org.mockito:mockito-core')
+
   testRuntime(project(':geode-old-versions'))
 
 
@@ -275,10 +278,7 @@ dependencies {
   webServerTomcat9('org.apache.tomcat:tomcat:' + DependencyConstraints.get('tomcat9.version') + '@zip')
   webServerJetty('org.eclipse.jetty:jetty-distribution:' + DependencyConstraints.get('jetty.version') + '@zip')
 
-  gfshDependencies ('org.springframework:spring-web') {
-    exclude module: 'spring-core'
-    exclude module: 'commons-logging'
-  }
+  integrationTestCompile('org.springframework:spring-web:4.3.23.RELEASE')
 }
 
 acceptanceTest {
