@@ -19,5 +19,6 @@ apply from: "${rootDir}/${scriptDir}/standard-subproject-configuration.gradle"
 
 dependencies {
     testCompile(group: 'net.sourceforge.pmd', name: 'pmd-test', version: '6.11.0')
-    compile(group: 'net.sourceforge.pmd', name: 'pmd-java', version: '6.11.0')
+    testCompile(group: 'net.sourceforge.pmd', name: 'pmd-java', version: '6.11.0')
+    compileOnly(group: 'net.sourceforge.pmd', name: 'pmd-java', version: '6.11.0')
 }
