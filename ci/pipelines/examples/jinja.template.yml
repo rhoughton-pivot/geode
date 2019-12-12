@@ -101,6 +101,7 @@ jobs:
             {{ common_instance_params(examples_test) | indent(12) }}
             GEODE_BRANCH: {{repository.branch}}
             GEODE_FORK: {{repository.fork}}
+            IMAGE_FAMILY_NAME: ((pipeline-prefix))linux-geode-builder
           run:
             path: geode-ci/ci/scripts/create_instance.sh
           inputs:

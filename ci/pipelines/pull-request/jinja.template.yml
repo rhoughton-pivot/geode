@@ -54,7 +54,25 @@ resources:
     repository: gcr.io/((gcp-project))/((pipeline-prefix))alpine-tools
     tag: latest
 
+- name: windows-builder-image-family
+  type: gci
+  source:
+    key: ((concourse-gcp-key))
+    family_project: ((gcp-project))
+    family: ((pipeline-prefix))windows-geode-builder
+
+- name: linux-builder-image-family
+  type: gci
+  source:
+    key: ((concourse-gcp-key))
+    family_project: ((gcp-project))
+    family: ((pipeline-prefix))linux-geode-builder
+
 resource_types:
+- name: gci
+  type: registry-image
+  source:
+    repository: smgoller/gci-resource
 - name: gcs-resource
   type: docker-image
   source:
@@ -105,6 +123,7 @@ jobs:
               GEODE_FORK: {{repository.fork}}
               JAVA_BUILD_VERSION: 8
               JAVA_TEST_VERSION: 8
+              IMAGE_FAMILY_NAME: ((pipeline-prefix))linux-geode-builder
             run:
               path: geode-ci/ci/scripts/create_instance.sh
             inputs:
@@ -235,6 +254,7 @@ jobs:
         trigger: true
         version: every
       - get: geode-ci
+      - get: {{ test.PLATFORM}}-builder-image-family
     - aggregate:
       - do:
         - put: pull-request-job-pending
@@ -259,6 +279,7 @@ jobs:
               RAM: {{test.RAM}}
               JAVA_BUILD_VERSION: {{ java_build_version.version }}
               JAVA_TEST_VERSION: {{ java_test_version.version }}
+              IMAGE_FAMILY_NAME: ((pipeline-prefix)){{ test.PLATFORM }}-geode-builder
             run:
               path: geode-ci/ci/scripts/create_instance.sh
             inputs:
