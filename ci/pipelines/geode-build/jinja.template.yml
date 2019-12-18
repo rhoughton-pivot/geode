@@ -255,6 +255,7 @@ jobs:
     - get: geode-build-version
       params:
         pre: ((semver-prerelease-token))
+    - get: {{ build_test.PLATFORM }}-builder-image-family
   - do:
     - put: concourse-metadata-resource
     {{ init_retry()|indent(4) }}
@@ -530,6 +531,7 @@ jobs:
     - get: geode
       passed: *publish-passed-inputs
       trigger: true
+    - get: linux-builder-image-family
   - aggregate:
     - get: geode-build-version
       trigger: true

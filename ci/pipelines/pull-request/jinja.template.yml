@@ -99,6 +99,7 @@ jobs:
         trigger: true
         version: every
       - get: geode-ci
+      - get: {{ build_test.PLATFORM }}-builder-image-family
     - aggregate:
       - do:
         - put: pull-request-job-pending
@@ -254,7 +255,7 @@ jobs:
         trigger: true
         version: every
       - get: geode-ci
-      - get: {{ test.PLATFORM}}-builder-image-family
+      - get: {{ test.PLATFORM }}-builder-image-family
     - aggregate:
       - do:
         - put: pull-request-job-pending
