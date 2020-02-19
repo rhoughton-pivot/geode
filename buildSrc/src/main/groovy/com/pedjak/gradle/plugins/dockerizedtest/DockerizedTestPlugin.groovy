@@ -27,7 +27,9 @@ import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.internal.file.DefaultFileCollectionFactory
+import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory
 import org.gradle.api.tasks.testing.Test
+import org.gradle.api.tasks.util.PatternSet
 import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.concurrent.ExecutorFactory
@@ -43,6 +45,7 @@ import org.gradle.internal.remote.internal.inet.MultiChoiceAddress
 import org.gradle.internal.time.Clock
 import org.gradle.process.internal.JavaExecHandleFactory
 import org.gradle.process.internal.worker.DefaultWorkerProcessFactory
+import org.gradle.internal.Factory;
 
 import javax.inject.Inject
 
@@ -105,7 +108,13 @@ class DockerizedTestPlugin implements Plugin<Project> {
         def executor = executorFactory.create("Docker container link")
         def buildCancellationToken = new DefaultBuildCancellationToken()
 
-        def defaultfilecollectionFactory = new DefaultFileCollectionFactory(project.fileResolver, null)
+      DefaultDirectoryFileTreeFactory
+      PatternSet
+        def defaultfilecollectionFactory = new DefaultFileCollectionFactory(project.fileResolver,
+                DefaultTaskDependencyFactory(),
+                DefaultDirectoryFileTreeFactory,
+                new Factory<PatternSet>()
+                )
         def execHandleFactory = [newJavaExec: { ->
             new DockerizedJavaExecHandleBuilder(
               extension, project.fileResolver, defaultfilecollectionFactory,
