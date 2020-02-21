@@ -271,8 +271,8 @@ unpausePipeline ${META_PIPELINE}
 driveToGreen $META_PIPELINE build-meta-mini-docker-image
 driveToGreen $META_PIPELINE set-images-pipeline
 unpausePipeline ${PIPELINE_PREFIX}images
-driveToGreen ${PIPELINE_PREFIX}images build-google-geode-builder
-driveToGreen ${PIPELINE_PREFIX}images build-google-windows-geode-builder
+#driveToGreen ${PIPELINE_PREFIX}images build-google-geode-builder
+#driveToGreen ${PIPELINE_PREFIX}images build-google-windows-geode-builder
 driveToGreen $META_PIPELINE set-pipeline
 unpausePipeline ${PIPELINE_PREFIX}main
 

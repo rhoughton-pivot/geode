@@ -106,11 +106,12 @@ jobs:
   serial: true
   public: ((!public-pipelines))
   plan:
-  - get: geode-images-pipeline
-    trigger: true
-  - get: meta-mini-image
-    trigger: true
-    passed: [build-meta-mini-docker-image]
+  - in_parallel:
+    - get: geode-images-pipeline
+      trigger: true
+    - get: meta-mini-image
+      trigger: true
+      passed: [build-meta-mini-docker-image]
   - task: create-image-yml
     image: meta-mini-image
     config:
@@ -146,11 +147,12 @@ jobs:
   serial: true
   public: ((!public-pipelines))
   plan:
-  - get: geode-pipeline
-    trigger: true
-  - get: meta-mini-image
-    trigger: true
-    passed: [set-images-pipeline]
+  - in_parallel:
+    - get: geode-pipeline
+      trigger: true
+    - get: meta-mini-image
+      trigger: true
+      passed: [set-images-pipeline]
   - task: create-geode-pipeline-yml
     image: meta-mini-image
     config:
@@ -192,11 +194,12 @@ jobs:
   serial: true
   public: ((!public-pipelines))
   plan:
-  - get: geode-examples-pipeline
-    trigger: true
-  - get: meta-mini-image
-    trigger: true
-    passed: [build-meta-mini-docker-image]
+  - in_parallel:
+    - get: geode-examples-pipeline
+      trigger: true
+    - get: meta-mini-image
+      trigger: true
+      passed: [build-meta-mini-docker-image]
   - task: deploy-build
     image: meta-mini-image
     config:
@@ -234,11 +237,12 @@ jobs:
   serial: true
   public: ((!public-pipelines))
   plan:
-  - get: geode-pr-pipeline
-    trigger: true
-  - get: meta-mini-image
-    trigger: true
-    passed: [build-meta-mini-docker-image]
+  - in_parallel:
+    - get: geode-pr-pipeline
+      trigger: true
+    - get: meta-mini-image
+      trigger: true
+      passed: [build-meta-mini-docker-image]
   - task: deploy-pr
     image: meta-mini-image
     config:
@@ -276,93 +280,94 @@ jobs:
   serial: true
   public: ((!public-pipelines))
   plan:
+  - in_parallel:
     - get: geode-metrics-pipeline
       trigger: true
     - get: meta-mini-image
       trigger: true
       passed: [build-meta-mini-docker-image]
-    - task: create-metrics-pipeline-yml
-      image: meta-mini-image
-      config:
-        platform: linux
-        inputs:
-          - name: geode-metrics-pipeline
-        outputs:
-          - name: results
-        params:
-          OUTPUT_DIRECTORY: results
-          GEODE_BRANCH: ((geode-build-branch))
-          GEODE_FORK: ((geode-fork))
-          GEODE_REPO_NAME: ((geode-repo-name))
-          REPOSITORY_PUBLIC: {{ repository.public }}
-          ARTIFACT_BUCKET: ((artifact-bucket))
-          UPSTREAM_FORK: {{ repository.upstream_fork }}
-          PIPELINE_PREFIX: ((pipeline-prefix))
-          SANITIZED_GEODE_BRANCH: ((sanitized-geode-build-branch))
-          SANITIZED_GEODE_FORK: ((sanitized-geode-fork))
-          GCP_PROJECT: ((gcp-project))
-          PUBLIC_PIPELINES: ((public-pipelines))
-          CONCOURSE_URL: ((concourse-url))
-          CONCOURSE_HOST: ((concourse-host))
-          CONCOURSE_TEAM: ((concourse-team))
-        run:
-          path: geode-metrics-pipeline/ci/pipelines/metrics/deploy_metrics_pipeline.sh
-    - put: concourse
+  - task: create-metrics-pipeline-yml
+    image: meta-mini-image
+    config:
+      platform: linux
+      inputs:
+      - name: geode-metrics-pipeline
+      outputs:
+      - name: results
       params:
-        pipelines:
-          - name: ((!pipeline-prefix))metrics
-            team: ((!concourse-team))
-            config_file: results/generated-pipeline.yml
-            vars_files:
-              - results/pipeline-vars.yml
+        OUTPUT_DIRECTORY: results
+        GEODE_BRANCH: ((geode-build-branch))
+        GEODE_FORK: ((geode-fork))
+        GEODE_REPO_NAME: ((geode-repo-name))
+        REPOSITORY_PUBLIC: {{ repository.public }}
+        ARTIFACT_BUCKET: ((artifact-bucket))
+        UPSTREAM_FORK: {{ repository.upstream_fork }}
+        PIPELINE_PREFIX: ((pipeline-prefix))
+        SANITIZED_GEODE_BRANCH: ((sanitized-geode-build-branch))
+        SANITIZED_GEODE_FORK: ((sanitized-geode-fork))
+        GCP_PROJECT: ((gcp-project))
+        PUBLIC_PIPELINES: ((public-pipelines))
+        CONCOURSE_URL: ((concourse-url))
+        CONCOURSE_HOST: ((concourse-host))
+        CONCOURSE_TEAM: ((concourse-team))
+      run:
+        path: geode-metrics-pipeline/ci/pipelines/metrics/deploy_metrics_pipeline.sh
+  - put: concourse
+    params:
+      pipelines:
+      - name: ((!pipeline-prefix))metrics
+        team: ((!concourse-team))
+        config_file: results/generated-pipeline.yml
+        vars_files:
+        - results/pipeline-vars.yml
 
 - name: set-reaper-pipeline
   serial: true
   public: ((!public-pipelines))
   plan:
+  - in_parallel:
     - get: geode-reaper-pipeline
       trigger: true
     - get: meta-mini-image
       trigger: true
       passed: [build-meta-mini-docker-image]
-    - task: create-image-yml
-      image: meta-mini-image
-      config:
-        platform: linux
-        inputs:
-          - name: geode-reaper-pipeline
-        outputs:
-          - name: results
-        params:
-          OUTPUT_DIRECTORY: results
-          GEODE_BRANCH: ((geode-build-branch))
-          GEODE_FORK: ((geode-fork))
-          GEODE_REPO_NAME: ((geode-repo-name))
-          REPOSITORY_PUBLIC: {{ repository.public }}
-          UPSTREAM_FORK: {{ repository.upstream_fork }}
-          PIPELINE_PREFIX: ((pipeline-prefix))
-          SANITIZED_GEODE_BRANCH: ((sanitized-geode-build-branch))
-          SANITIZED_GEODE_FORK: ((sanitized-geode-fork))
-          GCP_PROJECT: ((gcp-project))
-          PUBLIC_PIPELINES: ((public-pipelines))
-        run:
-          path: geode-reaper-pipeline/ci/pipelines/reaper/deploy_reaper_pipeline.sh
-    - put: concourse
+  - task: create-image-yml
+    image: meta-mini-image
+    config:
+      platform: linux
+      inputs:
+      - name: geode-reaper-pipeline
+      outputs:
+      - name: results
       params:
-        pipelines:
-          - name: ((!pipeline-prefix))reaper
-            team: ((!concourse-team))
-            config_file: results/generated-pipeline.yml
-            vars_files:
-              - results/pipeline-vars.yml
+        OUTPUT_DIRECTORY: results
+        GEODE_BRANCH: ((geode-build-branch))
+        GEODE_FORK: ((geode-fork))
+        GEODE_REPO_NAME: ((geode-repo-name))
+        REPOSITORY_PUBLIC: {{ repository.public }}
+        UPSTREAM_FORK: {{ repository.upstream_fork }}
+        PIPELINE_PREFIX: ((pipeline-prefix))
+        SANITIZED_GEODE_BRANCH: ((sanitized-geode-build-branch))
+        SANITIZED_GEODE_FORK: ((sanitized-geode-fork))
+        GCP_PROJECT: ((gcp-project))
+        PUBLIC_PIPELINES: ((public-pipelines))
+      run:
+        path: geode-reaper-pipeline/ci/pipelines/reaper/deploy_reaper_pipeline.sh
+  - put: concourse
+    params:
+      pipelines:
+      - name: ((!pipeline-prefix))reaper
+        team: ((!concourse-team))
+        config_file: results/generated-pipeline.yml
+        vars_files:
+        - results/pipeline-vars.yml
 
 - name: build-meta-mini-docker-image
   public: ((!public-pipelines))
   serial: true
   plan:
-  - aggregate:
-    - get: meta-mini-dockerfile
-      trigger: true
+  - get: meta-mini-dockerfile
+    trigger: true
   - put: meta-mini-image
     params:
       build: meta-mini-dockerfile/ci/images/meta-mini

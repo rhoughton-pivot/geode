@@ -65,6 +65,14 @@ java_test_versions:
 - name: OpenJDK11
   version: 11
 
+gci_base_families:
+- os: windows
+  family: 'windows-2016'
+  project: 'windows-cloud'
+- os: linux
+  family: 'ubuntu-minimal-1804-lts'
+  project: 'ubuntu-os-cloud'
+
 metadata:
   initial_version: 1.13.0
 

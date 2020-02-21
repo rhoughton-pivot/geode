@@ -104,21 +104,6 @@ groups:
   {%- for flavor in (benchmarks.flavors) %}
   - Benchmark{{flavor.title}}
   {%- endfor %}
-- name: complete
-  jobs:
-  - {{ build_test.name }}
-  {%- for test in (tests) if not test.name=="StressNew" -%}
-    {%- for java_test_version in (java_test_versions) %}
-  - {{test.name}}Test{{java_test_version.name}}
-    {%- endfor -%}
-  {%- endfor %}
-  - UpdatePassingTokens
-  {%- if repository.upstream_fork != "apache" or repository.branch == "develop" %}
-  - PublishArtifacts
-  {%- endif %}
-  {%- for flavor in (benchmarks.flavors) %}
-  - Benchmark{{flavor.title}}
-  {%- endfor %}
 - name: linux
   jobs:
   - {{ build_test.name }}
@@ -151,8 +136,75 @@ groups:
   {%- for semverPiece in ['major', 'minor', 'patch'] %}
   - Bump{{ semverPiece.title() }}
   {%- endfor %}
+- name: Images
+  jobs:
+  {%- for os in ['linux', 'windows'] %}
+  - build-google-{{os}}-geode-builder
+  {%- endfor %}
+- name: complete
+  jobs:
+  - {{ build_test.name }}
+  {%- for test in (tests) if not test.name=="StressNew" -%}
+  {%- for java_test_version in (java_test_versions) %}
+  - {{test.name}}Test{{java_test_version.name}}
+    {%- endfor -%}
+  {%- endfor %}
+  - UpdatePassingTokens
+  {%- if repository.upstream_fork != "apache" or repository.branch == "develop" %}
+  - PublishArtifacts
+  {%- endif %}
+  {%- for flavor in (benchmarks.flavors) %}
+  - Benchmark{{flavor.title}}
+  {%- endfor %}
+  {%- for semverPiece in ['major', 'minor', 'patch'] %}
+  - Bump{{ semverPiece.title() }}
+  {%- endfor %}
+  {%- for os in ['linux', 'windows'] %}
+  - build-google-{{os}}-geode-builder
+  {%- endfor %}
 
 resources:
+- name: alpine-tools-docker-image
+  icon: docker
+  type: registry-image
+  source:
+    username: ((docker-username))
+    password: ((docker-password))
+    repository: gcr.io/((gcp-project))/((pipeline-prefix))alpine-tools
+- name: test-container-docker-image
+  icon: docker
+  type: registry-image
+  source:
+    username: ((docker-username))
+    password: ((docker-password))
+    repository: gcr.io/((gcp-project))/((pipeline-prefix))test-container
+
+{% for gci in (gci_base_families) %}
+- name: {{gci.os}}-base-family
+  type: gci
+  check_every: 24h
+  source:
+    key: ((concourse-gcp-key))
+    family_project: {{gci.project}}
+    family: {{gci.family}}
+{% endfor %}
+- name: google-windows-geode-builder
+  icon: github-circle
+  type: git
+  source:
+    branch: ((geode-build-branch))
+    paths:
+    - ci/images/google-windows-geode-builder
+    {{ github_access() | indent(4) }}
+- name: google-linux-geode-builder
+  icon: github-circle
+  type: git
+  source:
+    branch: ((geode-build-branch))
+    paths:
+    - ci/images/google-linux-geode-builder
+    {{ github_access() | indent(4) }}
+
 - name: concourse-metadata-resource
   type: concourse-metadata-resource
   source: {}
@@ -233,6 +285,41 @@ resource_types:
   source:
     repository: frodenas/gcs-resource
 jobs:
+{% for gci in (gci_base_families) %}
+- name: build-google-{{gci.os}}-geode-builder
+  public: ((public-pipelines))
+  serial: true
+  plan:
+  - aggregate:
+    - get: test-container-docker-image
+#      passed: [build-test-container-docker-image]
+      trigger: true
+    - get: google-{{gci.os}}-geode-builder
+      trigger: true
+    - get: alpine-tools-docker-image
+#      passed: [build-alpine-tools-docker-image]
+    - get: {{gci.os}}-base-family
+      trigger: true
+  - task: build-image
+    timeout: 1h
+    image: alpine-tools-docker-image
+    config:
+      inputs:
+      - name: google-linux-geode-builder
+      outputs:
+      - name: results
+      platform: linux
+      params:
+        GEODE_DOCKER_IMAGE: gcr.io/((gcp-project))/((pipeline-prefix))test-container
+        PIPELINE_PREFIX: ((pipeline-prefix))
+        GCP_PROJECT: ((gcp-project))
+        CONCOURSE_GCP_KEY: "((concourse-gcp-key))"
+        JAVA_BUILD_VERSION: 8
+        BASE_FAMILY: {{ gci.family }}
+      run:
+        path: google-linux-geode-builder/ci/images/google-{{gci.os}}-geode-builder/build_image.sh
+{% endfor %}
+
 {% for semverPiece in ['major', 'minor', 'patch'] -%}
 - name: Bump{{ semverPiece.title() }}
   serial: true
