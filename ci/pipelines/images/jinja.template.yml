@@ -84,21 +84,6 @@ resources:
     password: ((docker-password))
     repository: gcr.io/((gcp-project))/((pipeline-prefix))concourse-metadata-resource
 
-- name: metric-tools-dockerfile
-  type: git
-  source:
-    {{ github_access() | indent(4) }}
-    branch: ((geode-build-branch))
-    paths:
-    - ci/images/metric-tools/*
-
-- name: metric-tools-docker-image
-  type: docker-image
-  source:
-    username: ((docker-username))
-    password: ((docker-password))
-    repository: gcr.io/((gcp-project))/((pipeline-prefix))metric-tools
-
 - name: gce-instances-resource-dockerfile
   type: git
   source:
@@ -183,20 +168,6 @@ jobs:
   - put: concourse-metadata-resource-docker-image
     params:
       build: concourse-metadata-resource-dockerfile/ci/resource-types/concourse-metadata-resource
-      tag_as_latest: true
-
-- name: build-metric-tools-docker-image
-  public: ((public-pipelines))
-  serial: true
-  plan:
-  - aggregate:
-    - get: alpine-docker-image
-      trigger: true
-    - get: metric-tools-dockerfile
-      trigger: true
-  - put: metric-tools-docker-image
-    params:
-      build: metric-tools-dockerfile/ci/images/metric-tools
       tag_as_latest: true
 
 - name: build-gce-instances-resource-docker-image
