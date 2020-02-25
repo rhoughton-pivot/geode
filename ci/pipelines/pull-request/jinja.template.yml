@@ -18,15 +18,6 @@
 {% from 'shared_jinja.yml' import pipeline_prefix with context %}
 {% from 'shared_jinja.yml' import init_retry with context %}
 
-groups:
-- name: main
-  jobs:
-  - {{ build_test.name }}
-{%- for test in tests if test.PLATFORM=="linux" %}
-  {%- for java_test_version in (java_test_versions) if not java_test_version.name.endswith("JDK8") or test.name == "Unit" %}
-  - {{test.name}}Test{{java_test_version.name}}
-  {%- endfor %}
-{%- endfor %}
 resources:
 - name: geode
   type: pull-request
