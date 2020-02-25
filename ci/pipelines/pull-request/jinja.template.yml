@@ -54,7 +54,7 @@ resources:
   type: concourse-metadata-resource
   source: {}
 - name: alpine-tools-image
-  type: docker-image
+  type: registry-image
   source:
     username: ((docker-username))
     password: ((docker-password))
@@ -68,30 +68,78 @@ resources:
     family_project: ((gcp-project))
     family: ((pipeline-prefix))linux-geode-builder
 
+
+- name: github-pr-resource-image
+  icon: docker
+  type: registry-image
+  source:
+    username: ((docker-username))
+    password: ((docker-password))
+    repository: gcr.io/((gcp-project))/((pipeline-prefix))github-pr-resource
+
+- name: github-pr-resource-dockerfile
+  icon: github-circle
+  type: git
+  source:
+    branch: master
+    uri: https://github.com/digitalocean/github-pr-resource.git
+  version:
+    ref: 1abb4b2a162e78099dab0b30144fec1e6c9b696d
+- name: oci-build-task-image
+  icon: docker
+  type: registry-image
+  source:
+    repository: vito/oci-build-task
+
 resource_types:
 - name: gci
   type: registry-image
   source:
     repository: smgoller/gci-resource
 - name: gcs-resource
-  type: docker-image
+  type: registry-image
   source:
     repository: frodenas/gcs-resource
 - name: pull-request
-  type: docker-image
+  type: registry-image
   source:
     username: ((docker-username))
     password: ((docker-password))
     repository: gcr.io/((gcp-project))/((pipeline-prefix))github-pr-resource
     tag: latest
+
 - name: concourse-metadata-resource
-  type: docker-image
+  type: registry-image
   source:
-    password: ((!docker-password))
+    password: ((docker-password))
     repository: gcr.io/apachegeode-ci/((pipeline-prefix))concourse-metadata-resource
     tag: latest
-    username: ((!docker-username))
+    username: ((docker-username))
 jobs:
+- name: build-github-pr-resource-image
+  public: ((public-pipelines))
+  serial: true
+  plan:
+  - in_parallel:
+    - get: oci-build-task-image
+#    - get: alpine-tools-docker-image
+#      passed: [build-alpine-tools-docker-image]
+    - get:  github-pr-resource-dockerfile
+  - task:
+    image: oci-build-task-image
+    privileged: true
+    config:
+      platform: linux
+      params:
+        CONTEXT: github-pr-resource-dockerfile
+      inputs:
+      - name: github-pr-resource-dockerfile
+      outputs:
+      - name: image
+  - put: github-pr-resource-image
+    params:
+      image: image/image.tar
+
 - name: {{build_test.name}}
   public: true
   plan:
