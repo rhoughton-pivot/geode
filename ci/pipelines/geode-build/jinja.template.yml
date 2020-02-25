@@ -304,7 +304,7 @@ resources:
 
 - name: concourse-metadata-resource-docker-image
   icon: docker
-  type: register-image
+  type: registry-image
   source:
     username: ((docker-username))
     password: ((docker-password))
@@ -323,7 +323,7 @@ resource_types:
     tag: latest
     username: ((docker-username))
 - name: gcs-resource
-  type: docker-image
+  type: registry-image
   source:
     repository: frodenas/gcs-resource
 
