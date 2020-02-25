@@ -26,27 +26,6 @@ resource_types:
     repository: smgoller/gci-resource
 
 resources:
-- name: build-concourse-dockerfile
-  type: git
-  source:
-    {{ github_access() | indent(4) }}
-    branch: ((geode-build-branch))
-    paths:
-    - ci/docker/*
-
-- name: build-concourse-docker-image
-  type: docker-image
-  source:
-    username: ((docker-username))
-    password: ((docker-password))
-    repository: gcr.io/((gcp-project))/((pipeline-prefix))concourse
-
-- name: openjdk8-docker-image
-  type: docker-image
-  source:
-    repository: openjdk
-    tag: 8
-
 - name: alpine-docker-image
   type: docker-image
   source:
@@ -126,20 +105,6 @@ jobs:
       params:
         build: github-pr-resource-dockerfile
         tag_as_latest: true
-
-- name: build-concourse-docker-image
-  public: ((public-pipelines))
-  serial: true
-  plan:
-  - aggregate:
-    - get: openjdk8-docker-image
-      trigger: true
-    - get: build-concourse-dockerfile
-      trigger: true
-  - put: build-concourse-docker-image
-    params:
-      build: build-concourse-dockerfile/ci/docker
-      tag_as_latest: true
 
 - name: build-alpine-tools-docker-image
   public: ((public-pipelines))
