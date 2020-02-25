@@ -48,20 +48,6 @@ resources:
     password: ((docker-password))
     repository: gcr.io/((gcp-project))/((pipeline-prefix))alpine-tools
 
-- name: concourse-metadata-resource-dockerfile
-  type: git
-  source:
-    {{ github_access() | indent(4) }}
-    branch: ((geode-build-branch))
-    paths:
-    - ci/resource-types/concourse-metadata-resource/*
-
-- name: concourse-metadata-resource-docker-image
-  type: docker-image
-  source:
-    username: ((docker-username))
-    password: ((docker-password))
-    repository: gcr.io/((gcp-project))/((pipeline-prefix))concourse-metadata-resource
 
 
 - name: github-pr-resource-image
@@ -104,21 +90,6 @@ jobs:
   - put: alpine-tools-docker-image
     params:
       build: alpine-tools-dockerfile/ci/images/alpine-tools
-      tag_as_latest: true
-
-
-- name: build-concourse-metadata-resource-docker-image
-  public: ((public-pipelines))
-  serial: true
-  plan:
-  - aggregate:
-    - get: alpine-docker-image
-      trigger: true
-    - get: concourse-metadata-resource-dockerfile
-      trigger: true
-  - put: concourse-metadata-resource-docker-image
-    params:
-      build: concourse-metadata-resource-dockerfile/ci/resource-types/concourse-metadata-resource
       tag_as_latest: true
 
 

@@ -142,6 +142,7 @@ groups:
   - build-google-{{os}}-geode-builder
   {%- endfor %}
   - build-test-container-docker-image
+  - build-concourse-metadata-resource-docker-image
 - name: complete
   jobs:
   - {{ build_test.name }}
@@ -164,8 +165,16 @@ groups:
   - build-google-{{os}}-geode-builder
   {%- endfor %}
   - build-test-container-docker-image
+  - build-concourse-metadata-resource-docker-image
 
 resources:
+- name: alpine-docker-image
+  icon: docker
+  type: registry-image
+  source:
+    repository: alpine
+    tag: latest
+
 - name: alpine-tools-docker-image
   icon: docker
   type: registry-image
@@ -291,6 +300,23 @@ resources:
     - ci/images/test-container/*
     {{ github_access() | indent(4) }}
 
+- name: concourse-metadata-resource-dockerfile
+  icon: github-circle
+  type: git
+  source:
+    {{ github_access() | indent(4) }}
+    branch: ((geode-build-branch))
+    paths:
+      - ci/resource-types/concourse-metadata-resource/*
+
+- name: concourse-metadata-resource-docker-image
+  icon: docker
+  type: register-image
+  source:
+    username: ((docker-username))
+    password: ((docker-password))
+    repository: gcr.io/((gcp-project))/((pipeline-prefix))concourse-metadata-resource
+
 resource_types:
 - name: gci
   type: registry-image
@@ -307,7 +333,36 @@ resource_types:
   type: docker-image
   source:
     repository: frodenas/gcs-resource
+
 jobs:
+- name: build-concourse-metadata-resource-docker-image
+  public: ((public-pipelines))
+  serial: true
+  plan:
+  - in_parallel:
+    - get: oci-build-task-image
+    - get: alpine-docker-image
+      trigger: true
+    - get: concourse-metadata-resource-dockerfile
+      trigger: true
+  - task: build-concourse-metadata-image
+    image: oci-build-task-image
+    privileged: true
+    config:
+      platform: linux
+      params:
+        CONTEXT: concourse-metadata-resource-dockerfile/ci/resource-types/concourse-metadata-resource
+      inputs:
+      - name: concourse-metadata-resource-dockerfile
+      outputs:
+      - name: image
+      run:
+        path: build
+  - put: concourse-metadata-resource-docker-image
+    params:
+      image: image/image.tar
+
+
 - name: build-test-container-docker-image
   public: ((public-pipelines))
   serial: true
