@@ -127,6 +127,8 @@ jobs:
       - name: github-pr-resource-dockerfile
       outputs:
       - name: image
+      run:
+        path: build
   - put: github-pr-resource-image
     params:
       image: image/image.tar
