@@ -116,7 +116,7 @@ jobs:
 #    - get: alpine-tools-docker-image
 #      passed: [build-alpine-tools-docker-image]
     - get:  github-pr-resource-dockerfile
-  - task:
+  - task: build-github-pr-image
     image: oci-build-task-image
     privileged: true
     config:
