@@ -414,7 +414,7 @@ jobs:
         JAVA_BUILD_VERSION: 8
         BASE_FAMILY: {{ gci.family }}
       run:
-        path: google-linux-geode-builder/ci/images/google-{{gci.os}}-geode-builder/build_image.sh
+        path: google-{{gci.os}}-geode-builder/ci/images/google-{{gci.os}}-geode-builder/build_image.sh
 {% endfor %}
 
 {% for semverPiece in ['major', 'minor', 'patch'] -%}
