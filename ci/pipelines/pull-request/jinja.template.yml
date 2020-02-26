@@ -40,7 +40,7 @@ resources:
     depth: 1
     paths:
     - ci/*
-    uri: https://github.com/apache/geode.git
+    uri: https://github.com/{{repository.fork}}/geode.git
 - name: concourse-metadata-resource
   type: concourse-metadata-resource
   source: {}
