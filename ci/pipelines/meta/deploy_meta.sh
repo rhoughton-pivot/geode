@@ -263,21 +263,18 @@ elif [[ "$GEODE_FORK" == "${UPSTREAM_FORK}" ]] && [[ "$GEODE_BRANCH" == "develop
 else
   echo "Disabling unnecessary jobs for release branches."
   echo "*** DO NOT RE-ENABLE THESE META-JOBS ***"
-  pauseJobs ${META_PIPELINE} set-images-pipeline set-reaper-pipeline
   pauseNewJobs ${META_PIPELINE} set-pr-pipeline set-metrics-pipeline set-examples-pipeline
 fi
 
 unpausePipeline ${META_PIPELINE}
-driveToGreen $META_PIPELINE build-meta-mini-docker-image
-driveToGreen $META_PIPELINE set-images-pipeline
-unpausePipeline ${PIPELINE_PREFIX}images
+driveToGreen $META_PIPELINE build-alpine-tools-docker-image
 #driveToGreen ${PIPELINE_PREFIX}images build-google-geode-builder
 #driveToGreen ${PIPELINE_PREFIX}images build-google-windows-geode-builder
 driveToGreen $META_PIPELINE set-pipeline
 unpausePipeline ${PIPELINE_PREFIX}main
 
 if [[ "$GEODE_FORK" == "${UPSTREAM_FORK}" ]]; then
-  exposePipelines ${PIPELINE_PREFIX}main ${PIPELINE_PREFIX}images
+  exposePipelines ${PIPELINE_PREFIX}main
   if [[ "${PUBLIC}" == "true" ]]; then
     enableFeature metrics
     enableFeature examples
