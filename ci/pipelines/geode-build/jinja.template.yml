@@ -395,7 +395,6 @@ jobs:
     - get: google-{{gci.os}}-geode-builder
       trigger: true
     - get: alpine-tools-docker-image
-#      passed: [build-alpine-tools-docker-image]
     - get: {{gci.os}}-base-family
       trigger: true
   - task: build-image
@@ -403,7 +402,7 @@ jobs:
     image: alpine-tools-docker-image
     config:
       inputs:
-      - name: google-linux-geode-builder
+      - name: google-{{gci.os}}-geode-builder
       outputs:
       - name: results
       platform: linux
