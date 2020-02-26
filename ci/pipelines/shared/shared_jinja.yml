@@ -26,7 +26,7 @@ password: ((github-password))
 
 {%- macro init_retry() -%}
 - task: initial-output
-  image: alpine-tools-image
+  image: alpine-tools-docker-image
   config:
     platform: linux
     outputs:
