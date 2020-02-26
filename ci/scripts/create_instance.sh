@@ -162,9 +162,7 @@ if [[ -z "${WINDOWS_PREFIX}" ]]; then
 else
   # Set up ssh access for Windows systems
   echo -n "Setting windows password via gcloud."
-#  INSTANCE_AGENT_READY_LINE="GCEWindowsAgent: GCE Agent Started"
   INSTANCE_SETUP_FINSHED_LINE="GCEInstanceSetup: Instance setup finished"
-#  SCRAPE_COMMAND_INSTANCE_READY="gcloud compute instances get-serial-port-output ${INSTANCE_NAME} --zone=${ZONE} | grep \"${INSTANCE_AGENT_READY_LINE}\" | wc -l"
   SCRAPE_COMMAND_SETUP_FINSHED="gcloud compute instances get-serial-port-output ${INSTANCE_NAME} --zone=${ZONE} | grep \"${INSTANCE_SETUP_FINSHED_LINE}\" | wc -l"
 
   while true; do
