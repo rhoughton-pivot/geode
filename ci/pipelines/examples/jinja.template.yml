@@ -58,7 +58,7 @@ resources:
   type: git
   source:
     uri: https://github.com/{{repository.fork}}/geode-examples.git
-    branch: {{ repository.branch }}
+    branch: develop
     depth: 10
 - name: geode-ci
   icon: github-circle
