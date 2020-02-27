@@ -58,7 +58,9 @@ resources:
   type: git
   source:
     uri: https://github.com/{{repository.fork}}/geode-examples.git
+    # TODO: don't merge this
     branch: develop
+    # END TODO
     depth: 10
 - name: geode-ci
   icon: github-circle
@@ -158,6 +160,8 @@ jobs:
     image: alpine-tools-docker-image
     config:
       platform: linux
+      inputs:
+      - name: instance-data
       run:
         path: sh
         args:
