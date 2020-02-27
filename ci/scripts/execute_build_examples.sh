@@ -48,7 +48,7 @@ SET_JAVA_HOME="export JAVA_HOME=/usr/lib/jvm/java-${JAVA_BUILD_VERSION}-openjdk-
 
 # Then build geode-examples, linking against the locally published jars.
 GEODE_VERSION_LINE=$(cat geode/gradle.properties |grep -i "^version = ")
-GEODE_VERSION=${GEODE_VERSION_LINE##*=}
+GEODE_VERSION=${GEODE_VERSION_LINE##*= }
 
 # First build and publish Geode locally
 GRADLE_COMMAND="./gradlew \
