@@ -109,42 +109,41 @@ jobs:
   public: true
   serial: true
   plan:
+  - get: linux-builder-image-family
   - in_parallel:
     - get: geode-ci
     - get: geode
       trigger: true
     - get: alpine-tools-docker-image
-    - get: linux-builder-image-family
     - get: geode-examples
       trigger: true
     - get: 24h
       trigger: true
     - put: concourse-metadata-resource
-  {{ init_retry()|indent(2) }}
-
-
-  - task: create_instance
-    image: alpine-tools-docker-image
-    config:
-      platform: linux
-      params:
-        {{ common_instance_params(examples_test) | indent(8) }}
-        GEODE_BRANCH: {{repository.branch}}
-        GEODE_FORK: {{repository.fork}}
-        IMAGE_FAMILY_NAME: ((pipeline-prefix))linux-geode-builder
-      run:
-        path: geode-ci/ci/scripts/create_instance.sh
-      inputs:
-      - name: concourse-metadata-resource
-      - name: geode-ci
-      - name: attempts-log
-        path: old
-      outputs:
-      - name: instance-data
-      - name: attempts-log
-        path: new
-    timeout: 15m
-    attempts: 2
+    - do:
+      {{ init_retry()|indent(6) }}
+      - task: create_instance
+        image: alpine-tools-docker-image
+        config:
+          platform: linux
+          params:
+            {{ common_instance_params(examples_test) | indent(8) }}
+            GEODE_BRANCH: {{repository.branch}}
+            GEODE_FORK: {{repository.fork}}
+            IMAGE_FAMILY_NAME: ((pipeline-prefix))linux-geode-builder
+          run:
+            path: geode-ci/ci/scripts/create_instance.sh
+          inputs:
+          - name: concourse-metadata-resource
+          - name: geode-ci
+          - name: attempts-log
+            path: old
+          outputs:
+          - name: instance-data
+          - name: attempts-log
+            path: new
+        timeout: 15m
+        attempts: 2
   - task: rsync_examples_code_up
     image: alpine-tools-docker-image
     config:
