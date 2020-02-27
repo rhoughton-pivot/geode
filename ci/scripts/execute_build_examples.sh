@@ -17,7 +17,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -e
+set -ex
 
 BASE_DIR=$(pwd)
 
@@ -46,6 +46,10 @@ INSTANCE_IP_ADDRESS="$(cat instance-data/instance-ip-address)"
 
 SET_JAVA_HOME="export JAVA_HOME=/usr/lib/jvm/java-${JAVA_BUILD_VERSION}-openjdk-amd64"
 
+# Then build geode-examples, linking against the locally published jars.
+GEODE_VERSION_LINE=$(cat geode/gradle.properties |grep -i "^version = ")
+GEODE_VERSION=${GEODE_VERSION_LINE##*=}
+
 # First build and publish Geode locally
 GRADLE_COMMAND="./gradlew \
     ${DEFAULT_GRADLE_TASK_OPTIONS} \
@@ -54,9 +58,6 @@ GRADLE_COMMAND="./gradlew \
 echo "${GRADLE_COMMAND}"
 ssh ${SSH_OPTIONS} geode@${INSTANCE_IP_ADDRESS} "set -x  && mkdir -p tmp && cd geode && ${SET_JAVA_HOME} && ${GRADLE_COMMAND}"
 
-# Then build geode-examples, linking against the locally published jars.
-GEODE_VERSION_LINE=$(cat ../geode/gradle.properties |grep -i "^version = ")
-GEODE_VERSION=${GEODE_VERSION_LINE##*=}
 
 GRADLE_COMMAND="./gradlew \
     ${DEFAULT_GRADLE_TASK_OPTIONS} \
