@@ -248,6 +248,8 @@ jobs:
         GRADLE_GLOBAL_ARGS: ((gradle-global-args))
       run:
         path: geode-pr-pipeline/ci/pipelines/pull-request/deploy_pr_pipeline.sh
+        args:
+        - no-deploy
   - put: concourse
     params:
       pipelines:

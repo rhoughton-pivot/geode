@@ -26,6 +26,20 @@ SCRIPTDIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 GEODEBUILDDIR="${SCRIPTDIR}/../geode-build"
 GEODE_FORK=${GEODE_FORK:-apache}
 
+while getopts ":n" opt; do
+  case ${opt} in
+    n )
+      SKIP_DEPLOY="true"
+      echo "Skipping deploy..."
+      ;;
+    \? )
+       echo "Usage: $0 [-n] "
+       echo "  [-n] -- No deployment. Generate YML only."
+       exit 1
+      ;;
+  esac
+done
+
 for cmd in Jinja2 PyYAML; do
   if ! [[ $(pip3 list |grep ${cmd}) ]]; then
     echo "${cmd} must be installed for pipeline deployment to work."
@@ -34,6 +48,22 @@ for cmd in Jinja2 PyYAML; do
     exit 1
   fi
 done
+
+. ${SCRIPTDIR}/../shared/utilities.sh
+
+OUTPUT_DIRECTORY=${OUTPUT_DIRECTORY:-$SCRIPTDIR}
+
+if [ -z "${SKIP_DEPLOY}" ]; then
+  parseMetaProperties
+
+  BIN_DIR=${OUTPUT_DIRECTORY}/bin
+  TMP_DIR=${OUTPUT_DIRECTORY}/tmp
+  mkdir -p ${BIN_DIR} ${TMP_DIR}
+  curl -o ${BIN_DIR}/fly "https://concourse.apachegeode-ci.info/api/v1/cli?arch=amd64&platform=linux"
+  chmod +x ${BIN_DIR}/fly
+
+  PATH=${PATH}:${BIN_DIR}
+fi
 
 set -e
 
@@ -46,21 +76,11 @@ if [ "${GEODE_BRANCH}" = "HEAD" ]; then
   exit 1
 fi
 
-
-. ${SCRIPTDIR}/../shared/utilities.sh
+FLY_TARGET=${CONCOURSE_HOST}-${CONCOURSE_TEAM}
 
 SANITIZED_GEODE_BRANCH=$(getSanitizedBranch ${GEODE_BRANCH})
 SANITIZED_GEODE_FORK=$(getSanitizedFork ${GEODE_FORK})
 
-OUTPUT_DIRECTORY=${OUTPUT_DIRECTORY:-$SCRIPTDIR}
-
-BIN_DIR=${OUTPUT_DIRECTORY}/bin
-TMP_DIR=${OUTPUT_DIRECTORY}/tmp
-mkdir -p ${BIN_DIR} ${TMP_DIR}
-curl -o ${BIN_DIR}/fly "https://concourse.apachegeode-ci.info/api/v1/cli?arch=amd64&platform=linux"
-chmod +x ${BIN_DIR}/fly
-
-PATH=${PATH}:${BIN_DIR}
 
 TARGET="geode"
 
@@ -87,7 +107,9 @@ YML
 
 popd 2>&1 > /dev/null
 
+set +e
 cp ${SCRIPTDIR}/generated-pipeline.yml ${OUTPUT_DIRECTORY}/generated-pipeline.yml
+set -e
 
 cat > ${OUTPUT_DIRECTORY}/pipeline-vars.yml <<YML
 geode-build-branch: ${GEODE_BRANCH}
@@ -101,3 +123,15 @@ artifact-bucket: ${ARTIFACT_BUCKET}
 gradle-global-args: ${GRADLE_GLOBAL_ARGS}
 YML
 
+if [ -z "${SKIP_DEPLOY}" ]; then
+  fly -t ${FLY_TARGET} status || \
+    fly -t ${FLY_TARGET} login \
+        --team-name ${CONCOURSE_TEAM} \
+        --concourse-url=${CONCOURSE_URL}
+  fly -t ${FLY_TARGET} set-pipeline \
+    -p ${PIPELINE_NAME} \
+    -c ${OUTPUT_DIRECTORY}/generated-pipeline.yml \
+  -l ${OUTPUT_DIRECTORY}/pipeline-vars.yml
+else
+  echo "Skipping fly set-pipeline"
+fi
