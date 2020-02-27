@@ -40,12 +40,12 @@ resource_types:
   source:
     repository: smgoller/gci-resource
 - name: maven-resource
-  type: docker-image
+  type: registry-image
   source:
     repository: nulldriver/maven-resource
     tag: latest
 - name: concourse-metadata-resource
-  type: docker-image
+  type: registry-image
   source:
     password: ((!docker-password))
     repository: gcr.io/((gcp-project))/((pipeline-prefix))concourse-metadata-resource
@@ -89,7 +89,8 @@ resources:
   type: time
   source: {interval: 24h}
 - name: alpine-tools-docker-image
-  type: docker-image
+  icon: docker
+  type: registry-image
   source:
     username: ((docker-username))
     password: ((docker-password))
@@ -170,7 +171,7 @@ jobs:
           SSHKEY_FILE="instance-data/sshkey"
           SSH_OPTIONS="-i ${SSHKEY_FILE} -o ConnectionAttempts=60 -o StrictHostKeyChecking=no"
           INSTANCE_IP_ADDRESS="$(cat instance-data/instance-ip-address)"
-          ssh ${SSH_OPTIONS} geode@${INSTANCE_IP_ADDRESS} "mv geode geode-examples"
+          ssh ${SSH_OPTIONS} geode@${INSTANCE_IP_ADDRESS} "set -x ; mv geode geode-examples"
   - task: rsync_geode_code_up
     image: alpine-tools-docker-image
     config:

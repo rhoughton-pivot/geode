@@ -55,8 +55,12 @@ echo "${GRADLE_COMMAND}"
 ssh ${SSH_OPTIONS} geode@${INSTANCE_IP_ADDRESS} "set -x  && mkdir -p tmp && cd geode && ${SET_JAVA_HOME} && ${GRADLE_COMMAND}"
 
 # Then build geode-examples, linking against the locally published jars.
+GEODE_VERSION_LINE=$(cat ../geode/gradle.properties |grep -i "^version = ")
+GEODE_VERSION=${GEODE_VERSION_LINE##*=}
+
 GRADLE_COMMAND="./gradlew \
     ${DEFAULT_GRADLE_TASK_OPTIONS} \
+    -PgeodeVersion=${GEODE_VERSION} \
     clean runAll"
 
 echo "${GRADLE_COMMAND}"
