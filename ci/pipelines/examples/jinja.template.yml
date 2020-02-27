@@ -117,8 +117,7 @@ jobs:
     - get: 24h
       trigger: true
     - put: concourse-metadata-resource
-
-  {{ init_retry()|indent(4) }}
+  {{ init_retry()|indent(2) }}
 
 
   - task: create_instance
@@ -126,7 +125,7 @@ jobs:
     config:
       platform: linux
       params:
-        {{ common_instance_params(examples_test) | indent(12) }}
+        {{ common_instance_params(examples_test) | indent(8) }}
         GEODE_BRANCH: {{repository.branch}}
         GEODE_FORK: {{repository.fork}}
         IMAGE_FAMILY_NAME: ((pipeline-prefix))linux-geode-builder
@@ -186,7 +185,7 @@ jobs:
       params:
         JAVA_BUILD_VERSION: {{ java_build_version.version }}
         GRADLE_TASK: {{ examples_test.GRADLE_TASK }}
-        {{ common_test_params(examples_test) | indent(12) }}
+        {{ common_test_params(examples_test) | indent(8) }}
       run:
         path: geode-ci/ci/scripts/execute_build_examples.sh
       inputs:
