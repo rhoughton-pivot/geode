@@ -62,16 +62,6 @@ resources:
     - ci/pipelines/shared/*
     - ci/pipelines/render.py
     - ci/pipelines/meta/meta.properties
-- name: geode-pr-pipeline
-  type: git
-  source:
-    {{ github_access() | indent(4) }}
-    branch: ((geode-build-branch))
-    paths:
-    - ci/pipelines/pull-request/*
-    - ci/pipelines/shared/*
-    - ci/pipelines/render.py
-    - ci/pipelines/meta/meta.properties
 {% endif %}
 - name: geode-metrics-pipeline
   type: git
@@ -211,49 +201,6 @@ jobs:
     params:
       pipelines:
       - name: ((pipeline-prefix))examples
-        team: ((concourse-team))
-        config_file: results/generated-pipeline.yml
-        vars_files:
-        - results/pipeline-vars.yml
-
-- name: set-pr-pipeline
-  serial: true
-  public: ((public-pipelines))
-  plan:
-  - in_parallel:
-    - get: geode-pr-pipeline
-      trigger: true
-    - get: alpine-tools-docker-image
-      trigger: true
-      passed: [build-alpine-tools-docker-image]
-  - task: deploy-pr
-    image: alpine-tools-docker-image
-    config:
-      platform: linux
-      inputs:
-      - name: geode-pr-pipeline
-      outputs:
-      - name: results
-      params:
-        OUTPUT_DIRECTORY: results
-        GEODE_BRANCH: ((geode-build-branch))
-        GEODE_FORK: ((geode-fork))
-        GEODE_REPO_NAME: ((geode-repo-name))
-        REPOSITORY_PUBLIC: {{ repository.public }}
-        ARTIFACT_BUCKET: ((artifact-bucket))
-        UPSTREAM_FORK: {{ repository.upstream_fork }}
-        PIPELINE_PREFIX: ((pipeline-prefix))
-        GCP_PROJECT: ((gcp-project))
-        PUBLIC_PIPELINES: ((public-pipelines))
-        GRADLE_GLOBAL_ARGS: ((gradle-global-args))
-      run:
-        path: geode-pr-pipeline/ci/pipelines/pull-request/deploy_pr_pipeline.sh
-        args:
-        - skip-deploy
-  - put: concourse
-    params:
-      pipelines:
-      - name: ((pipeline-prefix))pr
         team: ((concourse-team))
         config_file: results/generated-pipeline.yml
         vars_files:

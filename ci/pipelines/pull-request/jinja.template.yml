@@ -106,6 +106,7 @@ resource_types:
     repository: gcr.io/((gcp-project))/((pipeline-prefix))concourse-metadata-resource
     tag: latest
     username: ((docker-username))
+
 jobs:
 - name: build-github-pr-resource-image
   public: ((public-pipelines))
@@ -113,8 +114,6 @@ jobs:
   plan:
   - in_parallel:
     - get: oci-build-task-image
-#    - get: alpine-tools-docker-image
-#      passed: [build-alpine-tools-docker-image]
     - get: github-pr-resource-dockerfile
       trigger: true
   - task: build-github-pr-image

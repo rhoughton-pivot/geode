@@ -222,11 +222,11 @@ if [[ "${GEODE_FORK}" != "${UPSTREAM_FORK}" ]]; then
   pauseNewJobs ${META_PIPELINE} set-metrics-pipeline
 elif [[ "$GEODE_FORK" == "${UPSTREAM_FORK}" ]] && [[ "$GEODE_BRANCH" == "develop" ]]; then
   echo "Disabling optional jobs for develop"
-  pauseNewJobs ${META_PIPELINE} set-pr-pipeline set-metrics-pipeline set-examples-pipeline
+  pauseNewJobs ${META_PIPELINE} set-metrics-pipeline set-examples-pipeline
 else
   echo "Disabling unnecessary jobs for release branches."
   echo "*** DO NOT RE-ENABLE THESE META-JOBS ***"
-  pauseNewJobs ${META_PIPELINE} set-pr-pipeline set-metrics-pipeline set-examples-pipeline
+  pauseNewJobs ${META_PIPELINE} set-metrics-pipeline set-examples-pipeline
 fi
 
 unpausePipeline ${META_PIPELINE}
