@@ -109,12 +109,12 @@ jobs:
   public: true
   serial: true
   plan:
-  - get: linux-builder-image-family
+  - get: alpine-tools-docker-image
   - in_parallel:
+    - get: linux-builder-image-family
     - get: geode-ci
     - get: geode
       trigger: true
-    - get: alpine-tools-docker-image
     - get: geode-examples
       trigger: true
     - get: 24h
