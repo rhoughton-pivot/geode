@@ -195,7 +195,7 @@ jobs:
       inputs:
       - name: geode-ci
       - name: geode-examples
-        path: geode
+      - name: geode
       - name: instance-data
       outputs:
       - name: results
