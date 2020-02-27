@@ -68,3 +68,14 @@ parseMetaProperties() {
     exit 0
   fi
 }
+
+checkRequiredPythonModules() {
+  for cmd in Jinja2 PyYAML; do
+    if ! [[ $(pip3 list |grep ${cmd}) ]]; then
+      echo "${cmd} must be installed for pipeline deployment to work."
+      echo " 'pip3 install ${cmd}'"
+      echo ""
+      exit 1
+    fi
+  done
+}

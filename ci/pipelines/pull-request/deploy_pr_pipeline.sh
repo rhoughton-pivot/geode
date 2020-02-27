@@ -16,7 +16,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -xe
 SOURCE="${BASH_SOURCE[0]}"
 while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
   SCRIPTDIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
@@ -31,29 +30,13 @@ if [[ "${1}" == "skip-deploy" ]]; then
   SKIP_DEPLOY="true"
 fi
 
-for cmd in Jinja2 PyYAML; do
-  if ! [[ $(pip3 list |grep ${cmd}) ]]; then
-    echo "${cmd} must be installed for pipeline deployment to work."
-    echo " 'pip3 install ${cmd}'"
-    echo ""
-    exit 1
-  fi
-done
 
 . ${SCRIPTDIR}/../shared/utilities.sh
-
+checkRequiredPythonModules
 OUTPUT_DIRECTORY=${OUTPUT_DIRECTORY:-$SCRIPTDIR}
 
 if [ -z "${SKIP_DEPLOY}" ]; then
   parseMetaProperties
-
-  BIN_DIR=${OUTPUT_DIRECTORY}/bin
-  TMP_DIR=${OUTPUT_DIRECTORY}/tmp
-  mkdir -p ${BIN_DIR} ${TMP_DIR}
-  curl -o ${BIN_DIR}/fly "https://concourse.apachegeode-ci.info/api/v1/cli?arch=amd64&platform=linux"
-  chmod +x ${BIN_DIR}/fly
-
-  PATH=${PATH}:${BIN_DIR}
 fi
 
 set -e
@@ -75,13 +58,8 @@ SANITIZED_GEODE_FORK=$(getSanitizedFork ${GEODE_FORK})
 
 TARGET="geode"
 
-if [[ "${SANITIZED_GEODE_FORK}" == "apache" ]]; then
-  PIPELINE_NAME="pr-${SANITIZED_GEODE_BRANCH}"
-  DOCKER_IMAGE_PREFIX=""
-else
-  PIPELINE_NAME="pr-${SANITIZED_GEODE_FORK}-${SANITIZED_GEODE_BRANCH}"
-  DOCKER_IMAGE_PREFIX="${SANITIZED_GEODE_FORK}-${SANITIZED_GEODE_BRANCH}-"
-fi
+PIPELINE_PREFIX="${SANITIZED_GEODE_FORK}-${SANITIZED_GEODE_BRANCH}-"
+PIPELINE_NAME="${PIPELINE_PREFIX}pr"
 
 pushd ${SCRIPTDIR} 2>&1 > /dev/null
 
@@ -119,10 +97,12 @@ if [ -z "${SKIP_DEPLOY}" ]; then
     fly -t ${FLY_TARGET} login \
         --team-name ${CONCOURSE_TEAM} \
         --concourse-url=${CONCOURSE_URL}
+  set -x
   fly -t ${FLY_TARGET} set-pipeline \
     -p ${PIPELINE_NAME} \
     -c ${OUTPUT_DIRECTORY}/generated-pipeline.yml \
-  -l ${OUTPUT_DIRECTORY}/pipeline-vars.yml
+    -l ${OUTPUT_DIRECTORY}/pipeline-vars.yml
+  set +x
 else
   echo "Skipping fly set-pipeline"
 fi

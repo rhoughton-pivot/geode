@@ -25,16 +25,9 @@ while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symli
 done
 SCRIPTDIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
-for cmd in Jinja2 PyYAML; do
-  if ! [[ $(pip3 list |grep ${cmd}) ]]; then
-    echo "${cmd} must be installed for pipeline deployment to work."
-    echo " 'pip3 install ${cmd}'"
-    echo ""
-    exit 1
-  fi
-done
 . ${SCRIPTDIR}/../shared/utilities.sh
 
+checkRequiredPythonModules
 parseMetaProperties
 
 set -e
