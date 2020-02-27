@@ -249,7 +249,7 @@ jobs:
       run:
         path: geode-pr-pipeline/ci/pipelines/pull-request/deploy_pr_pipeline.sh
         args:
-        - "n"
+        - skip-deploy
   - put: concourse
     params:
       pipelines:

@@ -27,19 +27,9 @@ SCRIPTDIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 GEODEBUILDDIR="${SCRIPTDIR}/../geode-build"
 GEODE_FORK=${GEODE_FORK:-apache}
 
-while getopts ":n" opt; do
-  case ${opt} in
-    n )
-      SKIP_DEPLOY="true"
-      echo "Skipping deploy..."
-      ;;
-    \? )
-       echo "Usage: $0 [-n] "
-       echo "  [-n] -- No deployment. Generate YML only."
-       exit 1
-      ;;
-  esac
-done
+if [[ "${1}" == "skip-deploy" ]]; then
+  SKIP_DEPLOY="true"
+fi
 
 for cmd in Jinja2 PyYAML; do
   if ! [[ $(pip3 list |grep ${cmd}) ]]; then
