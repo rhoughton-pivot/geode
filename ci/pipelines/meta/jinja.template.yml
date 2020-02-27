@@ -231,9 +231,9 @@ jobs:
     config:
       platform: linux
       inputs:
-        - name: geode-pr-pipeline
+      - name: geode-pr-pipeline
       outputs:
-        - name: results
+      - name: results
       params:
         OUTPUT_DIRECTORY: results
         GEODE_BRANCH: ((geode-build-branch))
@@ -249,7 +249,7 @@ jobs:
       run:
         path: geode-pr-pipeline/ci/pipelines/pull-request/deploy_pr_pipeline.sh
         args:
-        - no-deploy
+        - "n"
   - put: concourse
     params:
       pipelines:
