@@ -50,9 +50,12 @@ SET_JAVA_HOME="export JAVA_HOME=/usr/lib/jvm/java-${JAVA_BUILD_VERSION}-openjdk-
 GEODE_VERSION_LINE=$(cat geode/gradle.properties |grep -i "^version = ")
 GEODE_VERSION=${GEODE_VERSION_LINE##*= }
 
+FAKE_VERSION=12.34.56
+
 # First build and publish Geode locally
 GRADLE_COMMAND="./gradlew \
     ${DEFAULT_GRADLE_TASK_OPTIONS} \
+    -Pversion=${FAKE_VERSION} \
     publishToMavenLocal"
 
 echo "${GRADLE_COMMAND}"
@@ -61,7 +64,7 @@ ssh ${SSH_OPTIONS} geode@${INSTANCE_IP_ADDRESS} "set -x  && mkdir -p tmp && cd g
 
 GRADLE_COMMAND="./gradlew \
     ${DEFAULT_GRADLE_TASK_OPTIONS} \
-    -PgeodeVersion=${GEODE_VERSION} \
+    -PgeodeVersion=${FAKE_VERSION} \
     clean runAll"
 
 echo "${GRADLE_COMMAND}"
