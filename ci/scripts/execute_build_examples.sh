@@ -46,25 +46,9 @@ INSTANCE_IP_ADDRESS="$(cat instance-data/instance-ip-address)"
 
 SET_JAVA_HOME="export JAVA_HOME=/usr/lib/jvm/java-${JAVA_BUILD_VERSION}-openjdk-amd64"
 
-# Then build geode-examples, linking against the locally published jars.
-GEODE_VERSION_LINE=$(cat geode/gradle.properties |grep -i "^version = ")
-GEODE_VERSION=${GEODE_VERSION_LINE##*= }
-
-FAKE_VERSION=12.34.56
-
-# First build and publish Geode locally
 GRADLE_COMMAND="./gradlew \
     ${DEFAULT_GRADLE_TASK_OPTIONS} \
-    -Pversion=${FAKE_VERSION} \
-    publishToMavenLocal"
-
-echo "${GRADLE_COMMAND}"
-ssh ${SSH_OPTIONS} geode@${INSTANCE_IP_ADDRESS} "set -x  && mkdir -p tmp && cd geode && ${SET_JAVA_HOME} && ${GRADLE_COMMAND}"
-
-
-GRADLE_COMMAND="./gradlew \
-    ${DEFAULT_GRADLE_TASK_OPTIONS} \
-    -PgeodeVersion=${FAKE_VERSION} \
+    -Dcomposite \
     clean runAll"
 
 echo "${GRADLE_COMMAND}"
