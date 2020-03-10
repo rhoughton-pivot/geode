@@ -20,7 +20,7 @@
 ---
 resource_types:
 - name: concourse-pipeline
-  type: docker-image
+  type: registry-image
   source:
     repository: concourse/concourse-pipeline-resource
 
@@ -28,67 +28,37 @@ resources:
 - name: concourse
   type: concourse-pipeline
   source:
-    target: ((!concourse-url))
+    target: ((concourse-url))
     insecure: "true"
     teams:
-    - name: ((!concourse-team))
-      username: ((!concourse-username))
-      password: ((!concourse-password))
+    - name: ((concourse-team))
+      username: ((concourse-username))
+      password: ((concourse-password))
 - name: geode-pipeline
   type: git
   source:
     {{ github_access() | indent(4) }}
-    branch: ((!geode-build-branch))
+    branch: ((geode-build-branch))
     paths:
     - ci/pipelines/geode-build/*
     - ci/pipelines/shared/*
     - ci/pipelines/render.py
     - ci/pipelines/meta/meta.properties
-- name: geode-images-pipeline
-  type: git
-  source:
-    {{ github_access() | indent(4) }}
-    branch: ((!geode-build-branch))
-    paths:
-    - ci/pipelines/images/*
 - name: geode-reaper-pipeline
   type: git
   source:
     {{ github_access() | indent(4) }}
-    branch: ((!geode-build-branch))
+    branch: ((geode-build-branch))
     paths:
     - ci/pipelines/reaper/*
-- name: meta-mini-dockerfile
-  type: git
-  source:
-    {{ github_access() | indent(4) }}
-    branch: ((!geode-build-branch))
-    paths:
-    - ci/images/meta-mini/*
-- name: meta-mini-image
-  type: docker-image
-  source:
-    username: ((!docker-username))
-    password: ((!docker-password))
-    repository: gcr.io/((!gcp-project))/((!sanitized-geode-fork))-((!sanitized-geode-build-branch))-meta-img
 {% if repository.fork == repository.upstream_fork %}
 - name: geode-examples-pipeline
   type: git
   source:
     {{ github_access() | indent(4) }}
-    branch: ((!geode-build-branch))
+    branch: ((geode-build-branch))
     paths:
     - ci/pipelines/examples/*
-    - ci/pipelines/shared/*
-    - ci/pipelines/render.py
-    - ci/pipelines/meta/meta.properties
-- name: geode-pr-pipeline
-  type: git
-  source:
-    {{ github_access() | indent(4) }}
-    branch: ((!geode-build-branch))
-    paths:
-    - ci/pipelines/pull-request/*
     - ci/pipelines/shared/*
     - ci/pipelines/render.py
     - ci/pipelines/meta/meta.properties
@@ -97,62 +67,67 @@ resources:
   type: git
   source:
     {{ github_access() | indent(4) }}
-    branch: ((!geode-build-branch))
+    branch: ((geode-build-branch))
     paths:
     - ci/pipelines/metrics/*
 
-jobs:
-- name: set-images-pipeline
-  serial: true
-  public: ((!public-pipelines))
-  plan:
-  - get: geode-images-pipeline
-    trigger: true
-  - get: meta-mini-image
-    trigger: true
-    passed: [build-meta-mini-docker-image]
-  - task: create-image-yml
-    image: meta-mini-image
-    config:
-      platform: linux
-      inputs:
-      - name: geode-images-pipeline
-      outputs:
-      - name: results
-      params:
-        OUTPUT_DIRECTORY: results
-        GEODE_BRANCH: ((geode-build-branch))
-        GEODE_FORK: ((geode-fork))
-        GEODE_REPO_NAME: ((geode-repo-name))
-        REPOSITORY_PUBLIC: {{ repository.public }}
-        UPSTREAM_FORK: {{ repository.upstream_fork }}
-        PIPELINE_PREFIX: ((pipeline-prefix))
-        SANITIZED_GEODE_BRANCH: ((sanitized-geode-build-branch))
-        SANITIZED_GEODE_FORK: ((sanitized-geode-fork))
-        GCP_PROJECT: ((gcp-project))
-        PUBLIC_PIPELINES: ((public-pipelines))
-      run:
-        path: geode-images-pipeline/ci/pipelines/images/deploy_images_pipeline.sh
-  - put: concourse
-    params:
-      pipelines:
-      - name: ((!pipeline-prefix))images
-        team: ((!concourse-team))
-        config_file: results/generated-pipeline.yml
-        vars_files:
-        - results/pipeline-vars.yml
+- name: oci-build-task-image
+  icon: docker
+  type: registry-image
+  source:
+    repository: vito/oci-build-task
 
+- name: alpine-tools-dockerfile
+  icon: github-circle
+  type: git
+  source:
+    branch: ((geode-build-branch))
+    paths:
+      - ci/images/alpine-tools/*
+    {{ github_access() | indent(4) }}
+
+- name: alpine-tools-docker-image
+  icon: docker
+  type: registry-image
+  source:
+    username: ((docker-username))
+    password: ((docker-password))
+    repository: gcr.io/((gcp-project))/((pipeline-prefix))alpine-tools
+
+- name: openjdk-8-alpine-image
+  icon: docker
+  type: registry-image
+  source:
+    repository: openjdk
+    tag: 8-jdk-alpine
+
+- name: google-cloud-sdk-image
+  icon: docker
+  type: registry-image
+  source:
+    repository: google/cloud-sdk
+    tag: alpine
+
+- name: hashicorp-packer-image
+  icon: docker
+  type: registry-image
+  source:
+    repository: hashicorp/packer
+    tag: 1.4.5
+
+jobs:
 - name: set-pipeline
   serial: true
-  public: ((!public-pipelines))
+  public: ((public-pipelines))
   plan:
-  - get: geode-pipeline
-    trigger: true
-  - get: meta-mini-image
-    trigger: true
-    passed: [set-images-pipeline]
+  - in_parallel:
+    - get: geode-pipeline
+      trigger: true
+    - get: alpine-tools-docker-image
+      trigger: true
+      passed: [build-alpine-tools-docker-image]
   - task: create-geode-pipeline-yml
-    image: meta-mini-image
+    image: alpine-tools-docker-image
     config:
       platform: linux
       inputs:
@@ -180,8 +155,8 @@ jobs:
   - put: concourse
     params:
       pipelines:
-      - name: ((!pipeline-prefix))main
-        team: ((!concourse-team))
+      - name: ((pipeline-prefix))main
+        team: ((concourse-team))
         config_file: results/generated-pipeline.yml
         vars_files:
         - results/pipeline-vars.yml
@@ -190,15 +165,16 @@ jobs:
 {% if repository.fork == repository.upstream_fork %}
 - name: set-examples-pipeline
   serial: true
-  public: ((!public-pipelines))
+  public: ((public-pipelines))
   plan:
-  - get: geode-examples-pipeline
-    trigger: true
-  - get: meta-mini-image
-    trigger: true
-    passed: [build-meta-mini-docker-image]
+  - in_parallel:
+    - get: geode-examples-pipeline
+      trigger: true
+    - get: alpine-tools-docker-image
+      trigger: true
+      passed: [build-alpine-tools-docker-image]
   - task: deploy-build
-    image: meta-mini-image
+    image: alpine-tools-docker-image
     config:
       platform: linux
       inputs:
@@ -224,48 +200,8 @@ jobs:
   - put: concourse
     params:
       pipelines:
-      - name: ((!pipeline-prefix))examples
-        team: ((!concourse-team))
-        config_file: results/generated-pipeline.yml
-        vars_files:
-        - results/pipeline-vars.yml
-
-- name: set-pr-pipeline
-  serial: true
-  public: ((!public-pipelines))
-  plan:
-  - get: geode-pr-pipeline
-    trigger: true
-  - get: meta-mini-image
-    trigger: true
-    passed: [build-meta-mini-docker-image]
-  - task: deploy-pr
-    image: meta-mini-image
-    config:
-      platform: linux
-      inputs:
-        - name: geode-pr-pipeline
-      outputs:
-        - name: results
-      params:
-        OUTPUT_DIRECTORY: results
-        GEODE_BRANCH: ((!geode-build-branch))
-        GEODE_FORK: ((!geode-fork))
-        GEODE_REPO_NAME: ((geode-repo-name))
-        REPOSITORY_PUBLIC: {{ repository.public }}
-        ARTIFACT_BUCKET: ((artifact-bucket))
-        UPSTREAM_FORK: {{ repository.upstream_fork }}
-        PIPELINE_PREFIX: ((pipeline-prefix))
-        GCP_PROJECT: ((gcp-project))
-        PUBLIC_PIPELINES: ((public-pipelines))
-        GRADLE_GLOBAL_ARGS: ((gradle-global-args))
-      run:
-        path: geode-pr-pipeline/ci/pipelines/pull-request/deploy_pr_pipeline.sh
-  - put: concourse
-    params:
-      pipelines:
-      - name: ((!pipeline-prefix))pr
-        team: ((!concourse-team))
+      - name: ((pipeline-prefix))examples
+        team: ((concourse-team))
         config_file: results/generated-pipeline.yml
         vars_files:
         - results/pipeline-vars.yml
@@ -274,96 +210,114 @@ jobs:
 
 - name: set-metrics-pipeline
   serial: true
-  public: ((!public-pipelines))
+  public: ((public-pipelines))
   plan:
+  - in_parallel:
     - get: geode-metrics-pipeline
       trigger: true
-    - get: meta-mini-image
+    - get: alpine-tools-docker-image
       trigger: true
-      passed: [build-meta-mini-docker-image]
-    - task: create-metrics-pipeline-yml
-      image: meta-mini-image
-      config:
-        platform: linux
-        inputs:
-          - name: geode-metrics-pipeline
-        outputs:
-          - name: results
-        params:
-          OUTPUT_DIRECTORY: results
-          GEODE_BRANCH: ((geode-build-branch))
-          GEODE_FORK: ((geode-fork))
-          GEODE_REPO_NAME: ((geode-repo-name))
-          REPOSITORY_PUBLIC: {{ repository.public }}
-          ARTIFACT_BUCKET: ((artifact-bucket))
-          UPSTREAM_FORK: {{ repository.upstream_fork }}
-          PIPELINE_PREFIX: ((pipeline-prefix))
-          SANITIZED_GEODE_BRANCH: ((sanitized-geode-build-branch))
-          SANITIZED_GEODE_FORK: ((sanitized-geode-fork))
-          GCP_PROJECT: ((gcp-project))
-          PUBLIC_PIPELINES: ((public-pipelines))
-          CONCOURSE_URL: ((concourse-url))
-          CONCOURSE_HOST: ((concourse-host))
-          CONCOURSE_TEAM: ((concourse-team))
-        run:
-          path: geode-metrics-pipeline/ci/pipelines/metrics/deploy_metrics_pipeline.sh
-    - put: concourse
+      passed: [build-alpine-tools-docker-image]
+  - task: create-metrics-pipeline-yml
+    image: alpine-tools-docker-image
+    config:
+      platform: linux
+      inputs:
+      - name: geode-metrics-pipeline
+      outputs:
+      - name: results
       params:
-        pipelines:
-          - name: ((!pipeline-prefix))metrics
-            team: ((!concourse-team))
-            config_file: results/generated-pipeline.yml
-            vars_files:
-              - results/pipeline-vars.yml
+        OUTPUT_DIRECTORY: results
+        GEODE_BRANCH: ((geode-build-branch))
+        GEODE_FORK: ((geode-fork))
+        GEODE_REPO_NAME: ((geode-repo-name))
+        REPOSITORY_PUBLIC: {{ repository.public }}
+        ARTIFACT_BUCKET: ((artifact-bucket))
+        UPSTREAM_FORK: {{ repository.upstream_fork }}
+        PIPELINE_PREFIX: ((pipeline-prefix))
+        SANITIZED_GEODE_BRANCH: ((sanitized-geode-build-branch))
+        SANITIZED_GEODE_FORK: ((sanitized-geode-fork))
+        GCP_PROJECT: ((gcp-project))
+        PUBLIC_PIPELINES: ((public-pipelines))
+        CONCOURSE_URL: ((concourse-url))
+        CONCOURSE_HOST: ((concourse-host))
+        CONCOURSE_TEAM: ((concourse-team))
+      run:
+        path: geode-metrics-pipeline/ci/pipelines/metrics/deploy_metrics_pipeline.sh
+  - put: concourse
+    params:
+      pipelines:
+      - name: ((pipeline-prefix))metrics
+        team: ((concourse-team))
+        config_file: results/generated-pipeline.yml
+        vars_files:
+        - results/pipeline-vars.yml
 
 - name: set-reaper-pipeline
   serial: true
-  public: ((!public-pipelines))
+  public: ((public-pipelines))
   plan:
+  - in_parallel:
     - get: geode-reaper-pipeline
       trigger: true
-    - get: meta-mini-image
+    - get: alpine-tools-docker-image
       trigger: true
-      passed: [build-meta-mini-docker-image]
-    - task: create-image-yml
-      image: meta-mini-image
-      config:
-        platform: linux
-        inputs:
-          - name: geode-reaper-pipeline
-        outputs:
-          - name: results
-        params:
-          OUTPUT_DIRECTORY: results
-          GEODE_BRANCH: ((geode-build-branch))
-          GEODE_FORK: ((geode-fork))
-          GEODE_REPO_NAME: ((geode-repo-name))
-          REPOSITORY_PUBLIC: {{ repository.public }}
-          UPSTREAM_FORK: {{ repository.upstream_fork }}
-          PIPELINE_PREFIX: ((pipeline-prefix))
-          SANITIZED_GEODE_BRANCH: ((sanitized-geode-build-branch))
-          SANITIZED_GEODE_FORK: ((sanitized-geode-fork))
-          GCP_PROJECT: ((gcp-project))
-          PUBLIC_PIPELINES: ((public-pipelines))
-        run:
-          path: geode-reaper-pipeline/ci/pipelines/reaper/deploy_reaper_pipeline.sh
-    - put: concourse
+      passed: [build-alpine-tools-docker-image]
+  - task: create-image-yml
+    image: alpine-tools-docker-image
+    config:
+      platform: linux
+      inputs:
+      - name: geode-reaper-pipeline
+      outputs:
+      - name: results
       params:
-        pipelines:
-          - name: ((!pipeline-prefix))reaper
-            team: ((!concourse-team))
-            config_file: results/generated-pipeline.yml
-            vars_files:
-              - results/pipeline-vars.yml
+        OUTPUT_DIRECTORY: results
+        GEODE_BRANCH: ((geode-build-branch))
+        GEODE_FORK: ((geode-fork))
+        GEODE_REPO_NAME: ((geode-repo-name))
+        REPOSITORY_PUBLIC: {{ repository.public }}
+        UPSTREAM_FORK: {{ repository.upstream_fork }}
+        PIPELINE_PREFIX: ((pipeline-prefix))
+        SANITIZED_GEODE_BRANCH: ((sanitized-geode-build-branch))
+        SANITIZED_GEODE_FORK: ((sanitized-geode-fork))
+        GCP_PROJECT: ((gcp-project))
+        PUBLIC_PIPELINES: ((public-pipelines))
+      run:
+        path: geode-reaper-pipeline/ci/pipelines/reaper/deploy_reaper_pipeline.sh
+  - put: concourse
+    params:
+      pipelines:
+      - name: ((pipeline-prefix))reaper
+        team: ((concourse-team))
+        config_file: results/generated-pipeline.yml
+        vars_files:
+        - results/pipeline-vars.yml
 
-- name: build-meta-mini-docker-image
-  public: ((!public-pipelines))
+- name: build-alpine-tools-docker-image
+  public: ((public-pipelines))
   serial: true
   plan:
-  - aggregate:
-    - get: meta-mini-dockerfile
+  - in_parallel:
+    - get: hashicorp-packer-image
+    - get: google-cloud-sdk-image
+    - get: openjdk-8-alpine-image
+    - get: oci-build-task-image
+    - get: alpine-tools-dockerfile
       trigger: true
-  - put: meta-mini-image
+  - task: build-alpine-tools-docker-image
+    image: oci-build-task-image
+    privileged: true
+    config:
+      platform: linux
+      params:
+        CONTEXT: alpine-tools-dockerfile/ci/images/alpine-tools
+      inputs:
+      - name: alpine-tools-dockerfile
+      outputs:
+      - name: image
+      run:
+        path: build
+  - put: alpine-tools-docker-image
     params:
-      build: meta-mini-dockerfile/ci/images/meta-mini
-      tag_as_latest: true
+      image: image/image.tar

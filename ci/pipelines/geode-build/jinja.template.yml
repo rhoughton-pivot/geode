@@ -151,8 +151,86 @@ groups:
   {%- for semverPiece in ['major', 'minor', 'patch'] %}
   - Bump{{ semverPiece.title() }}
   {%- endfor %}
+- name: images
+  jobs:
+  {%- for os in ['linux', 'windows'] %}
+  - build-google-{{os}}-geode-builder
+  {%- endfor %}
+  - build-test-container-docker-image
+  - build-concourse-metadata-resource-docker-image
+- name: complete
+  jobs:
+  - {{ build_test.name }}
+  {%- for test in (tests) if not test.name=="StressNew" -%}
+  {%- for java_test_version in (java_test_versions) %}
+  - {{test.name}}Test{{java_test_version.name}}
+    {%- endfor -%}
+  {%- endfor %}
+  - UpdatePassingTokens
+  {%- if repository.upstream_fork != "apache" or repository.branch == "develop" %}
+  - PublishArtifacts
+  {%- endif %}
+  {%- for flavor in (benchmarks.flavors) %}
+  - Benchmark{{flavor.title}}
+  {%- endfor %}
+  {%- for semverPiece in ['major', 'minor', 'patch'] %}
+  - Bump{{ semverPiece.title() }}
+  {%- endfor %}
+  {%- for os in ['linux', 'windows'] %}
+  - build-google-{{os}}-geode-builder
+  {%- endfor %}
+  - build-test-container-docker-image
+  - build-concourse-metadata-resource-docker-image
 
 resources:
+- name: alpine-docker-image
+  icon: docker
+  type: registry-image
+  source:
+    repository: alpine
+    tag: latest
+
+- name: alpine-tools-docker-image
+  icon: docker
+  type: registry-image
+  source:
+    username: ((docker-username))
+    password: ((docker-password))
+    repository: gcr.io/((gcp-project))/((pipeline-prefix))alpine-tools
+- name: test-container-docker-image
+  icon: docker
+  type: registry-image
+  source:
+    username: ((docker-username))
+    password: ((docker-password))
+    repository: gcr.io/((gcp-project))/((pipeline-prefix))test-container
+
+{% for gci in (gci_base_families) %}
+- name: {{gci.os}}-base-family
+  type: gci
+  check_every: 24h
+  source:
+    key: ((concourse-gcp-key))
+    family_project: {{gci.project}}
+    family: {{gci.family}}
+{% endfor %}
+- name: google-windows-geode-builder
+  icon: github-circle
+  type: git
+  source:
+    branch: ((geode-build-branch))
+    paths:
+    - ci/images/google-windows-geode-builder
+    {{ github_access() | indent(4) }}
+- name: google-linux-geode-builder
+  icon: github-circle
+  type: git
+  source:
+    branch: ((geode-build-branch))
+    paths:
+    - ci/images/google-linux-geode-builder
+    {{ github_access() | indent(4) }}
+
 - name: concourse-metadata-resource
   type: concourse-metadata-resource
   source: {}
@@ -193,13 +271,6 @@ resources:
     bucket: ((artifact-bucket))
     json_key: ((concourse-gcp-key))
     versioned_file: semvers/((pipeline-prefix))((geode-build-branch))/passing-build-tokens.json
-- name: alpine-tools-image
-  type: docker-image
-  source:
-    username: ((docker-username))
-    password: ((docker-password))
-    repository: gcr.io/((gcp-project))/((pipeline-prefix))alpine-tools
-    tag: latest
 
 - name: windows-builder-image-family
   type: gci
@@ -215,6 +286,44 @@ resources:
     family_project: ((gcp-project))
     family: ((pipeline-prefix))linux-geode-builder
 
+- name: oci-build-task-image
+  icon: docker
+  type: registry-image
+  source:
+    repository: vito/oci-build-task
+
+- name: bionic-scm-docker-image
+  type: registry-image
+  icon: docker
+  source:
+    repository: buildpack-deps
+    tag: bionic-scm
+
+- name: test-container-dockerfile
+  icon: github-circle
+  type: git
+  source:
+    branch: ((geode-build-branch))
+    paths:
+    - ci/images/test-container/*
+    {{ github_access() | indent(4) }}
+
+- name: concourse-metadata-resource-dockerfile
+  icon: github-circle
+  type: git
+  source:
+    {{ github_access() | indent(4) }}
+    branch: ((geode-build-branch))
+    paths:
+      - ci/resource-types/concourse-metadata-resource/*
+
+- name: concourse-metadata-resource-docker-image
+  icon: docker
+  type: registry-image
+  source:
+    username: ((docker-username))
+    password: ((docker-password))
+    repository: gcr.io/((gcp-project))/((pipeline-prefix))concourse-metadata-resource
 
 resource_types:
 - name: gci
@@ -229,10 +338,100 @@ resource_types:
     tag: latest
     username: ((docker-username))
 - name: gcs-resource
-  type: docker-image
+  type: registry-image
   source:
     repository: frodenas/gcs-resource
+
 jobs:
+- name: build-concourse-metadata-resource-docker-image
+  public: ((public-pipelines))
+  serial: true
+  plan:
+  - in_parallel:
+    - get: oci-build-task-image
+    - get: alpine-docker-image
+      trigger: true
+    - get: concourse-metadata-resource-dockerfile
+      trigger: true
+  - task: build-concourse-metadata-image
+    image: oci-build-task-image
+    privileged: true
+    config:
+      platform: linux
+      params:
+        CONTEXT: concourse-metadata-resource-dockerfile/ci/resource-types/concourse-metadata-resource
+      inputs:
+      - name: concourse-metadata-resource-dockerfile
+      outputs:
+      - name: image
+      run:
+        path: build
+  - put: concourse-metadata-resource-docker-image
+    params:
+      image: image/image.tar
+
+
+- name: build-test-container-docker-image
+  public: ((public-pipelines))
+  serial: true
+  plan:
+  - aggregate:
+    - get: oci-build-task-image
+    - get: bionic-scm-docker-image
+      trigger: true
+    - get: test-container-dockerfile
+      trigger: true
+  - task: build-test-container-image
+    image: oci-build-task-image
+    privileged: true
+    config:
+      platform: linux
+      params:
+        CONTEXT: test-container-dockerfile/ci/images/test-container
+      inputs:
+      - name: test-container-dockerfile
+      outputs:
+      - name: image
+      run:
+        path: build
+  - put: test-container-docker-image
+    params:
+      image: image/image.tar
+
+{% for gci in (gci_base_families) %}
+- name: build-google-{{gci.os}}-geode-builder
+  public: ((public-pipelines))
+  serial: true
+  plan:
+  - aggregate:
+    - get: test-container-docker-image
+      passed: [build-test-container-docker-image]
+      trigger: true
+    - get: google-{{gci.os}}-geode-builder
+      trigger: true
+    - get: alpine-tools-docker-image
+    - get: {{gci.os}}-base-family
+      trigger: true
+  - task: build-image
+    timeout: 1h
+    image: alpine-tools-docker-image
+    config:
+      inputs:
+      - name: google-{{gci.os}}-geode-builder
+      outputs:
+      - name: results
+      platform: linux
+      params:
+        GEODE_DOCKER_IMAGE: gcr.io/((gcp-project))/((pipeline-prefix))test-container
+        PIPELINE_PREFIX: ((pipeline-prefix))
+        GCP_PROJECT: ((gcp-project))
+        CONCOURSE_GCP_KEY: "((concourse-gcp-key))"
+        JAVA_BUILD_VERSION: 8
+        BASE_FAMILY: {{ gci.family }}
+      run:
+        path: google-{{gci.os}}-geode-builder/ci/images/google-{{gci.os}}-geode-builder/build_image.sh
+{% endfor %}
+
 {% for semverPiece in ['major', 'minor', 'patch'] -%}
 - name: Bump{{ semverPiece.title() }}
   serial: true
@@ -249,7 +448,7 @@ jobs:
   plan:
   - aggregate:
     - get: geode-ci
-    - get: alpine-tools-image
+    - get: alpine-tools-docker-image
     - get: geode
       trigger: true
     - get: geode-build-version
@@ -260,7 +459,7 @@ jobs:
     - put: concourse-metadata-resource
 #    {{ init_retry()|indent(4) }}
 #    - task: create_instance
-#      image: alpine-tools-image
+#      image: alpine-tools-docker-image
 #      config:
 #        platform: linux
 #        params:
@@ -285,7 +484,7 @@ jobs:
 #      attempts: 5
 #      on_failure:
 #        task: delete_instance
-#        image: alpine-tools-image
+#        image: alpine-tools-docker-image
 #        config:
 #          platform: linux
 #          run:
@@ -299,7 +498,7 @@ jobs:
 #      params:
 #        file: geode-build-version/number
 #    - task: rsync_code_up
-#      image: alpine-tools-image
+#      image: alpine-tools-docker-image
 #      config:
 #        platform: linux
 #        run:
@@ -311,7 +510,7 @@ jobs:
 #    timeout: 10m
 #    on_failure:
 #      task: delete_instance
-#      image: alpine-tools-image
+#      image: alpine-tools-docker-image
 #      config:
 #        platform: linux
 #        run:
@@ -321,7 +520,7 @@ jobs:
 #        - name: instance-data
 #      timeout: 1h
 #  - task: build
-#    image: alpine-tools-image
+#    image: alpine-tools-docker-image
 #    config:
 #      platform: linux
 #      params:
@@ -342,7 +541,7 @@ jobs:
 #    ensure:
 #      do:
 #      - task: rsync_code_down
-#        image: alpine-tools-image
+#        image: alpine-tools-docker-image
 #        config:
 #          platform: linux
 #          params:
@@ -359,7 +558,7 @@ jobs:
 #        do:
 #        - aggregate:
 #          - task: archive_results
-#            image: alpine-tools-image
+#            image: alpine-tools-docker-image
 #            config:
 #              platform: linux
 #              params:
@@ -378,7 +577,7 @@ jobs:
 #              - name: geode-results
 #            timeout: 1h
 #          - task: delete_instance
-#            image: alpine-tools-image
+#            image: alpine-tools-docker-image
 #            config:
 #              platform: linux
 #              run:
@@ -393,7 +592,7 @@ jobs:
   serial: true
   plan:
   - aggregate:
-    - get: alpine-tools-image
+    - get: alpine-tools-docker-image
     - get: geode
       passed: &update-token-passed-anchor
 {%- if repository.upstream_fork != "apache" or repository.branch == "develop" %}
@@ -408,7 +607,7 @@ jobs:
       trigger: true
       passed: *update-token-passed-anchor
   - task: couple-sha-and-build-id
-    image: alpine-tools-image
+    image: alpine-tools-docker-image
     config:
       platform: linux
       inputs:
@@ -452,7 +651,7 @@ jobs:
   - get: geode-ci
     passed:
     {{ all_gating_jobs() | indent(4) }}
-  - get: alpine-tools-image
+  - get: alpine-tools-docker-image
   - aggregate:
     - get: geode
       passed:
@@ -466,7 +665,7 @@ jobs:
     - put: concourse-metadata-resource
 #  - do:
 #    - task: run_benchmarks{{ run_var.title }}
-#      image: alpine-tools-image
+#      image: alpine-tools-docker-image
 #      config:
 #        platform: linux
 #        params:
@@ -494,7 +693,7 @@ jobs:
 #      ensure:
 #        do:
 #        - task: cleanup_benchmarks
-#          image: alpine-tools-image
+#          image: alpine-tools-docker-image
 #          config:
 #            platform: linux
 #            params:
@@ -527,7 +726,7 @@ jobs:
       {% for flavor in (benchmarks.flavors) %}
       - Benchmark{{flavor.title}}
       {% endfor %}
-    - get: alpine-tools-image
+    - get: alpine-tools-docker-image
     - get: geode
       passed: *publish-passed-inputs
       trigger: true
@@ -539,7 +738,7 @@ jobs:
     - put: concourse-metadata-resource
     {{ init_retry()|indent(4) }}
   - task: create_instance
-    image: alpine-tools-image
+    image: alpine-tools-docker-image
     config:
       platform: linux
       params:
@@ -563,7 +762,7 @@ jobs:
     timeout: 20m
     attempts: 5
   - task: rsync_code_up
-    image: alpine-tools-image
+    image: alpine-tools-docker-image
     config:
       platform: linux
       run:
@@ -574,7 +773,7 @@ jobs:
       - name: instance-data
     timeout: 5m
   - task: publish
-    image: alpine-tools-image
+    image: alpine-tools-docker-image
     config:
       platform: linux
       params:
@@ -594,7 +793,7 @@ jobs:
     ensure:
       do:
       - task: delete_instance
-        image: alpine-tools-image
+        image: alpine-tools-docker-image
         config:
           platform: linux
           run:
@@ -620,12 +819,12 @@ jobs:
   - do:
     {{- plan_resource_gets(test) |indent(4) }}
       - put: concourse-metadata-resource
-      - get: alpine-tools-image
+      - get: alpine-tools-docker-image
       - get: {{ test.PLATFORM}}-builder-image-family
 #    - do:
 #      {{ init_retry()|indent(6) }}
 #      - task: create_instance-{{java_test_version.name}}
-#        image: alpine-tools-image
+#        image: alpine-tools-docker-image
 #        config:
 #          platform: linux
 #          params:
@@ -652,7 +851,7 @@ jobs:
 #        attempts: 5
 #      - do:
 #        - task: rsync_code_up-{{java_test_version.name}}
-#          image: alpine-tools-image
+#          image: alpine-tools-docker-image
 #          config:
 #            platform: linux
 #            run:
@@ -665,7 +864,7 @@ jobs:
 #          timeout: 15m
 #          attempts: 5
 #        - task: execute_tests-{{java_test_version.name}}
-#          image: alpine-tools-image
+#          image: alpine-tools-docker-image
 #          config:
 #            platform: linux
 #            params:
@@ -685,7 +884,7 @@ jobs:
 #        ensure:
 #          do:
 #          - task: rsync_code_down-{{java_test_version.name}}
-#            image: alpine-tools-image
+#            image: alpine-tools-docker-image
 #            config:
 #              platform: linux
 #              params:
@@ -706,7 +905,7 @@ jobs:
 #            do:
 #            - aggregate:
 #              - task: archive_results-{{java_test_version.name}}
-#                image: alpine-tools-image
+#                image: alpine-tools-docker-image
 #                config:
 #                  platform: linux
 #                  params:
@@ -725,7 +924,7 @@ jobs:
 #                    path: geode-results
 #                timeout: 1h
 #              - task: delete_instance-{{java_test_version.name}}
-#                image: alpine-tools-image
+#                image: alpine-tools-docker-image
 #                config:
 #                  platform: linux
 #                  run:
