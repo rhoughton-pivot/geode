@@ -93,6 +93,7 @@ resources:
     username: ((docker-username))
     password: ((docker-password))
     repository: gcr.io/((gcp-project))/((pipeline-prefix))alpine-tools
+    debug: true
 
 - name: openjdk-8-alpine-image
   icon: docker
