@@ -104,21 +104,6 @@ groups:
   {%- for flavor in (benchmarks.flavors) %}
   - Benchmark{{flavor.title}}
   {%- endfor %}
-- name: complete
-  jobs:
-  - {{ build_test.name }}
-  {%- for test in (tests) if not test.name=="StressNew" -%}
-    {%- for java_test_version in (java_test_versions) %}
-  - {{test.name}}Test{{java_test_version.name}}
-    {%- endfor -%}
-  {%- endfor %}
-  - UpdatePassingTokens
-  {%- if repository.upstream_fork != "apache" or repository.branch == "develop" %}
-  - PublishArtifacts
-  {%- endif %}
-  {%- for flavor in (benchmarks.flavors) %}
-  - Benchmark{{flavor.title}}
-  {%- endfor %}
 - name: linux
   jobs:
   - {{ build_test.name }}
