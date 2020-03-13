@@ -58,9 +58,9 @@
 {%- do deep_merge(a, b) %}
 
 {% macro common_instance_params(test) -%}
-#GCP_PROJECT: ((gcp-project))
-#CPUS: {{ test.CPUS }}
-#RAM: {{ test.RAM }}
+GCP_PROJECT: ((gcp-project))
+CPUS: {{ test.CPUS }}
+RAM: {{ test.RAM }}
 {%- endmacro %}
 
 {% macro common_test_params(test) -%}
