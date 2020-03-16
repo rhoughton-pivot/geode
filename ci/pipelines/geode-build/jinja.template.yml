@@ -440,6 +440,10 @@ jobs:
       params:
         pre: ((semver-prerelease-token))
     - get: {{ build_test.PLATFORM }}-builder-image-family
+  - put: geode-build-version
+    params:
+      file: geode-build-version/number
+
 
 - name: UpdatePassingTokens
   public: true
