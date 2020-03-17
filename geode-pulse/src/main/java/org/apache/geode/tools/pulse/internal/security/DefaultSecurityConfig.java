@@ -31,7 +31,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.crypto.password.NoOpPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.ExceptionMappingAuthenticationFailureHandler;
 
 @Configuration
@@ -40,12 +40,12 @@ import org.springframework.security.web.authentication.ExceptionMappingAuthentic
 @Profile("pulse.authentication.default")
 public class DefaultSecurityConfig extends WebSecurityConfigurerAdapter {
   @Bean
-  public LogoutHandler customLogoutSuccessHandler() {
+  public LogoutHandler logoutHandler() {
     return new LogoutHandler("/login.html");
   }
 
   @Bean
-  public ExceptionMappingAuthenticationFailureHandler authenticationFailureHandler() {
+  public ExceptionMappingAuthenticationFailureHandler failureHandler() {
     ExceptionMappingAuthenticationFailureHandler exceptionMappingAuthenticationFailureHandler =
         new ExceptionMappingAuthenticationFailureHandler();
     Map<String, String> exceptionMappings = new HashMap<>();
@@ -96,8 +96,11 @@ public class DefaultSecurityConfig extends WebSecurityConfigurerAdapter {
   @Override
   protected void configure(AuthenticationManagerBuilder authenticationManagerBuilder)
       throws Exception {
+    @SuppressWarnings("deprecation")
+    final PasswordEncoder noOpPasswordEncoder =
+        org.springframework.security.crypto.password.NoOpPasswordEncoder.getInstance();
     authenticationManagerBuilder.inMemoryAuthentication()
-        .passwordEncoder(NoOpPasswordEncoder.getInstance())
+        .passwordEncoder(noOpPasswordEncoder)
         .withUser("admin")
         .password("admin")
         .roles("CLUSTER:READ", "DATA:READ");
