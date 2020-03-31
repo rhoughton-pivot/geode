@@ -59,7 +59,7 @@ allprojects {
   ext.isReleaseVersion = true
   if(version.contains("SNAPSHOT")) {
     ext.isReleaseVersion = false
-    version = (version as String).replaceFirst(/SNAPSHOT.*/, 'SNAPSHOT')
+//    version = (version as String).replaceFirst(/SNAPSHOT.*/, 'SNAPSHOT')
   }
 
   repositories {
