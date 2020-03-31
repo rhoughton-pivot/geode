@@ -11,57 +11,48 @@
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
+ *
  */
+
 package org.apache.geode.redis;
 
 import static org.apache.geode.distributed.ConfigurationProperties.LOCATORS;
 import static org.apache.geode.distributed.ConfigurationProperties.LOG_LEVEL;
 import static org.apache.geode.distributed.ConfigurationProperties.MCAST_PORT;
-import static org.apache.geode.redis.GeodeRedisServer.REDIS_META_DATA_REGION;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.Random;
-
-import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import redis.clients.jedis.Jedis;
-import redis.clients.jedis.exceptions.JedisDataException;
 
 import org.apache.geode.cache.CacheFactory;
 import org.apache.geode.cache.GemFireCache;
 import org.apache.geode.internal.AvailablePortHelper;
-import org.apache.geode.test.junit.categories.RedisTest;
+import org.apache.geode.test.awaitility.GeodeAwaitility;
 
-@Category({RedisTest.class})
-public class SetCommandNegativeCaseIntegrationTest {
-  private static Jedis jedis;
+public class RedisLockServiceIntegrationTest {
+
+  private static final int REDIS_CLIENT_TIMEOUT = 100000;
   private static GeodeRedisServer server;
   private static GemFireCache cache;
-  private static Random rand;
+  private static Jedis jedis;
   private static int port = 6379;
 
   @BeforeClass
   public static void setUp() {
-    rand = new Random();
     CacheFactory cf = new CacheFactory();
-    cf.set(LOG_LEVEL, "error");
+    cf.set(LOG_LEVEL, "warn");
     cf.set(MCAST_PORT, "0");
     cf.set(LOCATORS, "");
     cache = cf.create();
+
+    System.setProperty(GeodeRedisServer.DEFAULT_REGION_SYS_PROP_NAME, "REPLICATE");
     port = AvailablePortHelper.getRandomAvailableTCPPort();
     server = new GeodeRedisServer("localhost", port);
-
     server.start();
-    jedis = new Jedis("localhost", port, 10000000);
-  }
 
-
-  @After
-  public void flushAll() {
-    jedis.flushAll();
+    jedis = new Jedis("localhost", port, REDIS_CLIENT_TIMEOUT);
   }
 
   @AfterClass
@@ -72,19 +63,15 @@ public class SetCommandNegativeCaseIntegrationTest {
   }
 
   @Test
-  public void Should_Throw_RedisDataTypeMismatchException_Given_Key_Already_Exists_With_Different_RedisDataType() {
-    jedis.hset("key", "field", "value");
+  public void onceLocksAreFreed_thenTheyAreAutomaticallyCleanedUp() {
+    for (int i = 0; i < 1000; i++) {
+      jedis.sadd("key-" + i, "value-" + i);
+    }
 
-    assertThatThrownBy(
-        () -> jedis.set("key", "something else")).isInstanceOf(JedisDataException.class)
-            .hasMessageContaining("WRONGTYPE");
-  }
+    System.gc();
+    System.runFinalization();
 
-  @Test
-  public void Should_Throw_RedisDataTypeMismatchException_Given_RedisDataType_REDIS_PROTECTED() {
-    assertThatThrownBy(
-        () -> jedis.set(REDIS_META_DATA_REGION, "something else"))
-            .isInstanceOf(JedisDataException.class)
-            .hasMessageContaining("protected");
+    GeodeAwaitility.await().until(() -> server.getLockService().getLockCount() == 0);
+    assertThat(server.getLockService().getLockCount()).isEqualTo(0);
   }
 }

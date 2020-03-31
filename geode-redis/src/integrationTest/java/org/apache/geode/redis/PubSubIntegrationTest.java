@@ -27,6 +27,7 @@ import java.util.concurrent.Callable;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import redis.clients.jedis.Jedis;
@@ -40,12 +41,13 @@ import org.apache.geode.test.awaitility.GeodeAwaitility;
 import org.apache.geode.test.junit.categories.RedisTest;
 
 @Category({RedisTest.class})
+@Ignore("GEODE-7870")
 public class PubSubIntegrationTest {
-  private static final int REDIS_CLIENT_TIMEOUT = 100000;
+  static Jedis publisher;
+  static Jedis subscriber;
+  static final int REDIS_CLIENT_TIMEOUT = 100000;
   private static GeodeRedisServer server;
   private static GemFireCache cache;
-  private static Jedis publisher;
-  private static Jedis subscriber;
   private static int port = 6379;
 
   @BeforeClass
@@ -70,6 +72,10 @@ public class PubSubIntegrationTest {
     publisher.close();
     cache.close();
     server.shutdown();
+  }
+
+  public int getPort() {
+    return port;
   }
 
   @Test
@@ -151,7 +157,7 @@ public class PubSubIntegrationTest {
 
   @Test
   public void testTwoSubscribersOneChannel() {
-    Jedis subscriber2 = new Jedis("localhost", port, REDIS_CLIENT_TIMEOUT);
+    Jedis subscriber2 = new Jedis("localhost", getPort(), REDIS_CLIENT_TIMEOUT);
     MockSubscriber mockSubscriber1 = new MockSubscriber();
     MockSubscriber mockSubscriber2 = new MockSubscriber();
 
@@ -213,7 +219,7 @@ public class PubSubIntegrationTest {
 
   @Test
   public void testDeadSubscriber() {
-    Jedis deadSubscriber = new Jedis("localhost", port, REDIS_CLIENT_TIMEOUT);
+    Jedis deadSubscriber = new Jedis("localhost", getPort(), REDIS_CLIENT_TIMEOUT);
 
     MockSubscriber mockSubscriber = new MockSubscriber();
 
