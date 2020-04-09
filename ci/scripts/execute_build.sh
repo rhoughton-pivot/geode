@@ -38,6 +38,7 @@ fi
 ROOT_DIR=$(pwd)
 BUILD_DATE=$(date +%s)
 
+set -x
 # Precheckin does not get a geode-build-version
 if [ -e "${ROOT_DIR}/geode-build-version" ] ; then
   GEODE_BUILD_VERSION_FILE=${ROOT_DIR}/geode-build-version/number
@@ -55,7 +56,7 @@ if [ -e "${ROOT_DIR}/geode-build-version" ] ; then
     BUILD_ID=$(get-geode-build-id-padded ${CONCOURSE_VERSION} 2> /dev/null)
   fi
 fi
-
+set +x
 if [[ ${PARALLEL_GRADLE:-"true"} == "true" ]]; then
   PARALLEL_GRADLE="--parallel"
 else

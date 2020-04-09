@@ -109,6 +109,6 @@ public class ExpireExecutorJUnitTest {
 
     List<ByteBuf> capturedErrors = argsErrorCaptor.getAllValues();
     assertThat(capturedErrors.get(0).toString(defaultCharset()))
-        .startsWith("-ERR The number of seconds specified must be numeric");
+        .startsWith("-ERR value is not an integer or out of range");
   }
 }

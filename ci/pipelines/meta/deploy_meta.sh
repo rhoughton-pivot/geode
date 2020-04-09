@@ -224,7 +224,7 @@ elif [[ "$GEODE_FORK" == "${UPSTREAM_FORK}" ]] && [[ "$GEODE_BRANCH" == "develop
   echo "Disabling optional jobs for develop"
   pauseNewJobs ${META_PIPELINE} set-metrics-pipeline set-examples-pipeline
 else
-  echo "Disabling unnecessary jobs for release branches."
+  echo "Disabling unnecessary jobs for support branches."
   echo "*** DO NOT RE-ENABLE THESE META-JOBS ***"
   pauseNewJobs ${META_PIPELINE} set-metrics-pipeline set-examples-pipeline
 fi
@@ -237,8 +237,8 @@ driveToGreen $META_PIPELINE set-pipeline
 unpausePipeline ${PIPELINE_PREFIX}main
 
 if [[ "$GEODE_FORK" == "${UPSTREAM_FORK}" ]]; then
-  exposePipelines ${PIPELINE_PREFIX}main
   if [[ "${PUBLIC}" == "true" ]]; then
+    exposePipelines ${PIPELINE_PREFIX}main
     enableFeature metrics
     enableFeature examples
   fi
