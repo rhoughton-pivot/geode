@@ -53,6 +53,12 @@ resource_types:
     username: ((!docker-username))
 
 resources:
+- name: geode-passing-tokens
+  type: gcs-resource
+  source:
+    bucket: ((artifact-bucket))
+    json_key: ((concourse-gcp-key))
+    versioned_file: semvers/((pipeline-prefix))((geode-build-branch))/passing-build-tokens.json
 - name: geode-examples
   icon: github-circle
   type: git
@@ -71,17 +77,6 @@ resources:
     branch: {{ repository.branch }}
     paths:
     - ci/*
-- name: geode
-  icon: github-circle
-  type: git
-  source:
-    depth: 1
-    uri: https://github.com/{{repository.fork}}/geode.git
-    branch: {{ repository.branch }}
-    ignore_paths:
-    - ci/*
-    - docker/*
-    - etc/*
 - name: concourse-metadata-resource
   type: concourse-metadata-resource
   source: {}
@@ -113,7 +108,7 @@ jobs:
     - get: alpine-tools-docker-image
     - get: geode-ci
     - get: linux-builder-image-family
-    - get: geode
+    - get: geode-passing-tokens
       trigger: true
     - get: geode-examples
       trigger: true
@@ -170,17 +165,6 @@ jobs:
           SSH_OPTIONS="-i ${SSHKEY_FILE} -o ConnectionAttempts=60 -o StrictHostKeyChecking=no"
           INSTANCE_IP_ADDRESS="$(cat instance-data/instance-ip-address)"
           ssh ${SSH_OPTIONS} geode@${INSTANCE_IP_ADDRESS} "set -x ; mv geode geode-examples"
-  - task: rsync_geode_code_up
-    image: alpine-tools-docker-image
-    config:
-      platform: linux
-      run:
-        path: geode-ci/ci/scripts/rsync_code_up.sh
-      inputs:
-      - name: geode-ci
-      - name: geode
-      - name: instance-data
-    timeout: 5m
   - task: build
     image: alpine-tools-docker-image
     config:
@@ -194,7 +178,7 @@ jobs:
       inputs:
       - name: geode-ci
       - name: geode-examples
-      - name: geode
+      - name: geode-passing-tokens
       - name: instance-data
       outputs:
       - name: results
