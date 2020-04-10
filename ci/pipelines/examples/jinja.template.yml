@@ -51,6 +51,10 @@ resource_types:
     repository: gcr.io/((gcp-project))/((pipeline-prefix))concourse-metadata-resource
     tag: latest
     username: ((!docker-username))
+- name: gcs-resource
+  type: registry-image
+  source:
+    repository: frodenas/gcs-resource
 
 resources:
 - name: geode-passing-tokens
