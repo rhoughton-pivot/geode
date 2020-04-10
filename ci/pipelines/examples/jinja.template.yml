@@ -198,15 +198,15 @@ jobs:
       - name: instance-data
       outputs:
       - name: results
-  ensure:
-    do:
-    - task: delete_instance
-      image: alpine-tools-docker-image
-      config:
-        platform: linux
-        run:
-          path: geode-ci/ci/scripts/delete_instance.sh
-        inputs:
-        - name: geode-ci
-        - name: instance-data
-      timeout: 1h
+#  ensure:
+#    do:
+#    - task: delete_instance
+#      image: alpine-tools-docker-image
+#      config:
+#        platform: linux
+#        run:
+#          path: geode-ci/ci/scripts/delete_instance.sh
+#        inputs:
+#        - name: geode-ci
+#        - name: instance-data
+#      timeout: 1h
