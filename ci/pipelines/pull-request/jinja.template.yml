@@ -158,7 +158,7 @@ jobs:
             status: pending
           get_params: {skip_download: true}
       - do:
-        - put: concourse-metadata-resource
+        - get: concourse-metadata-resource
         {{ init_retry()|indent(8) }}
         - task: create_instance
           image: alpine-tools-image
@@ -318,7 +318,7 @@ jobs:
             status: pending
           get_params: {skip_download: true}
       - do:
-        - put: concourse-metadata-resource
+        - get: concourse-metadata-resource
         {{ init_retry()|indent(8) }}
         - task: create_instance-{{java_test_version.name}}
           image: alpine-tools-image

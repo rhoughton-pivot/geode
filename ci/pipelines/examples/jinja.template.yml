@@ -118,7 +118,7 @@ jobs:
       trigger: true
     - get: 24h
       trigger: true
-    - put: concourse-metadata-resource
+    - get: concourse-metadata-resource
   {{ init_retry()|indent(2) }}
   - task: create_instance
     image: alpine-tools-docker-image
