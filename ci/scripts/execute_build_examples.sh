@@ -50,7 +50,8 @@ SET_JAVA_HOME="export JAVA_HOME=/usr/lib/jvm/java-${JAVA_BUILD_VERSION}-openjdk-
 
 GRADLE_COMMAND="./gradlew \
     ${DEFAULT_GRADLE_TASK_OPTIONS} \
-    -PgeodeVersion=${GEODE_VERSION} \
+    -PgeodeRepositoryUrl=https://maven.apachegeode-ci.info/snapshots \
+    -PgeodeVersion=${GEODE_VERSION%.*} \
     clean runAll"
 
 echo "${GRADLE_COMMAND}"
