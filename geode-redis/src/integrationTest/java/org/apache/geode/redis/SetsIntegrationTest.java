@@ -18,8 +18,8 @@ import static org.apache.geode.distributed.ConfigurationProperties.LOCATORS;
 import static org.apache.geode.distributed.ConfigurationProperties.LOG_LEVEL;
 import static org.apache.geode.distributed.ConfigurationProperties.MCAST_PORT;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -34,14 +34,18 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
+import org.junit.rules.ExpectedException;
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.exceptions.JedisDataException;
 
 import org.apache.geode.cache.CacheFactory;
 import org.apache.geode.cache.GemFireCache;
 import org.apache.geode.internal.AvailablePortHelper;
 import org.apache.geode.management.internal.cli.util.ThreePhraseGenerator;
+import org.apache.geode.redis.internal.RedisConstants;
 import org.apache.geode.test.junit.categories.RedisTest;
 
 @Category({RedisTest.class})
@@ -54,7 +58,7 @@ public class SetsIntegrationTest {
   private static int port = 6379;
 
   @BeforeClass
-  public static void setUp() throws IOException {
+  public static void setUp() {
     CacheFactory cf = new CacheFactory();
     cf.set(LOG_LEVEL, "error");
     cf.set(MCAST_PORT, "0");
@@ -96,6 +100,42 @@ public class SetsIntegrationTest {
     assertThat(response2).isEqualTo(0L);
 
     assertThat(jedis.scard(key)).isEqualTo(strings.size());
+  }
+
+  @Rule
+  public ExpectedException exceptionRule = ExpectedException.none();
+
+  @Test
+  public void testSAdd_withExistingKey_ofWrongType_shouldReturnError() {
+    String key = "key";
+    String stringValue = "preexistingValue";
+    String[] setValue = new String[1];
+    setValue[0] = "set value that should never get added";
+
+    exceptionRule.expect(JedisDataException.class);
+    exceptionRule.expectMessage(RedisConstants.ERROR_WRONG_TYPE);
+
+    jedis.set(key, stringValue);
+    jedis.sadd(key, setValue);
+  }
+
+  @Test
+  public void testSAdd_withExistingKey_ofWrongType_shouldNotOverWriteExistingKey() {
+    String key = "key";
+    String stringValue = "preexistingValue";
+    String[] setValue = new String[1];
+    setValue[0] = "set value that should never get added";
+
+    jedis.set(key, stringValue);
+
+    try {
+      jedis.sadd(key, setValue);
+    } catch (JedisDataException exception) {
+    }
+
+    String result = jedis.get(key);
+
+    assertThat(result).isEqualTo(stringValue);
   }
 
   @Test
@@ -694,19 +734,91 @@ public class SetsIntegrationTest {
   }
 
   @Test
-  public void testSRem() {
-    jedis.sadd("master", "field1", "field2");
+  public void testSRem_should_ReturnTheNumberOfElementsRemoved() {
+    String key = "key";
+    String field1 = "field1";
+    String field2 = "field2";
+    jedis.sadd(key, field1, field2);
 
-    Long sremCount = jedis.srem("master", "field1", "field2", "unknown");
-    Set<String> sremSet = jedis.smembers("master");
-    assertThat(sremCount).isEqualTo(2);
-    assertThat(sremSet).isEmpty();
+    Long removedElementsCount = jedis.srem(key, field1, field2);
 
-    sremCount = jedis.srem("master", "field1", "field2", "unknown");
-    assertThat(sremCount).isEqualTo(0);
+    assertThat(removedElementsCount).isEqualTo(2);
+  }
 
-    sremCount = jedis.srem("unknownkey", "field1");
-    assertThat(sremCount).isEqualTo(0);
+  @Test
+  public void testSRem_should_RemoveSpecifiedElementsFromSet() {
+    String key = "key";
+    String field1 = "field1";
+    String field2 = "field2";
+    jedis.sadd(key, field1, field2);
+
+    jedis.srem(key, field2);
+
+    Set<String> membersInSet = jedis.smembers(key);
+    assertThat(membersInSet).doesNotContain(field2);
+  }
+
+  @Test
+  public void testSRem_should_ThrowError_givenOnlyKey() {
+    String key = "key";
+    String field1 = "field1";
+    String field2 = "field2";
+    jedis.sadd(key, field1, field2);
+
+    Throwable caughtException = catchThrowable(
+        () -> jedis.srem(key));
+
+    assertThat(caughtException).hasMessageContaining("wrong number of arguments");
+  }
+
+  @Test
+  public void testSRem_should_notRemoveMembersOfSetNotSpecified() {
+    String key = "key";
+    String field1 = "field1";
+    String field2 = "field2";
+    jedis.sadd(key, field1, field2);
+
+    jedis.srem(key, field1);
+
+    Set<String> membersInSet = jedis.smembers(key);
+    assertThat(membersInSet).containsExactly(field2);
+  }
+
+  @Test
+  public void testSRem_should_ignoreMembersNotInSpecifiedSet() {
+    String key = "key";
+    String field1 = "field1";
+    String field2 = "field2";
+    String unkownField = "random-guy";
+    jedis.sadd(key, field1, field2);
+
+    long result = jedis.srem(key, unkownField);
+
+    assertThat(result).isEqualTo(0);
+  }
+
+  @Test
+  public void testSRem_should_throwError_givenKeyThatIsNotASet() {
+    String key = "key";
+    String value = "value";
+    jedis.set(key, value);
+
+    Throwable caughtException = catchThrowable(
+        () -> jedis.srem(key, value));
+
+    assertThat(caughtException)
+        .hasMessageContaining(
+            "WRONGTYPE Operation against a key holding the wrong kind of value");
+  }
+
+  @Test
+  public void testSRem_shouldReturnZero_givenNonExistingKey() {
+    String key = "key";
+    String field = "field";
+
+    long result = jedis.srem(key, field);
+
+    assertThat(result).isEqualTo(0);
   }
 
   @Test

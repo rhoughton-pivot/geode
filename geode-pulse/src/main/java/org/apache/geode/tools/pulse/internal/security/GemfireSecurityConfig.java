@@ -16,28 +16,30 @@
 package org.apache.geode.tools.pulse.internal.security;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 
+import org.apache.geode.tools.pulse.internal.data.Repository;
+
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 @Profile("pulse.authentication.gemfire")
 public class GemfireSecurityConfig extends DefaultSecurityConfig {
-  @Bean
-  public GemFireAuthenticationProvider gemAuthenticationProvider() {
-    return new GemFireAuthenticationProvider();
-  }
+
+  private final Repository repository;
 
   @Autowired
-  GemFireAuthenticationProvider gemAuthenticationProvider;
+  public GemfireSecurityConfig(Repository repository) {
+    this.repository = repository;
+  }
 
   @Override
   protected void configure(AuthenticationManagerBuilder authenticationManagerBuilder) {
-    authenticationManagerBuilder.authenticationProvider(gemAuthenticationProvider);
+    authenticationManagerBuilder
+        .authenticationProvider(new GemFireAuthenticationProvider(repository));
   }
 }

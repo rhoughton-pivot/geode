@@ -74,7 +74,7 @@ gci_base_families:
   project: 'ubuntu-os-cloud'
 
 metadata:
-  initial_version: 1.13.0
+  initial_version: 1.13.0-((semver-prerelease-token))
 
 publish_artifacts:
   CPUS: '8'
