@@ -31,7 +31,7 @@ find-here-test-reports() {
 }
 
 ## Parsing functions for the Concourse Semver resource.
-## These functions expect one input in the form of the resource file, e.g., "1.9.0-SNAPSHOT.325"
+## These functions expect one input in the form of the resource file, e.g., "1.9.0-build.325"
 get-geode-version() {
   local CONCOURSE_VERSION=$1
   # Prune all after '-', yielding e.g., "1.9.0"
@@ -42,9 +42,9 @@ get-geode-version() {
 
 get-geode-version-qualifier-slug() {
   local CONCOURSE_VERSION=$1
-  # Prune all before '-', yielding e.g., "SNAPSHOT.325"
+  # Prune all before '-', yielding e.g., "build.325"
   local CONCOURSE_BUILD_SLUG=${CONCOURSE_VERSION##*-}
-  # Prune all before '.', yielding e.g., "SNAPSHOT"
+  # Prune all before '.', yielding e.g., "build"
   local QUALIFIER_SLUG=${CONCOURSE_BUILD_SLUG%%.*}
   echo ${QUALIFIER_SLUG}
 }
