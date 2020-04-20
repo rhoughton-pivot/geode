@@ -48,7 +48,7 @@ else
   CONCOURSE_VERSION=$(cat ${GEODE_BUILD_VERSION_FILE})
   echo "Concourse VERSION is ${CONCOURSE_VERSION}"
   # Rebuild version, zero-padded
-  FULL_PRODUCT_VERSION=$(get-full-version ${CONCOURSE_VERSION})
+  FULL_PRODUCT_VERSION=${CONCOURSE_VERSION}
 fi
 
 DEFAULT_GRADLE_TASK_OPTIONS="--parallel --console=plain --no-daemon"
