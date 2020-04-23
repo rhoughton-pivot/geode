@@ -114,7 +114,7 @@ resources:
   type: registry-image
   source:
     repository: hashicorp/packer
-    tag: latest
+    tag: 1.4.5
 
 jobs:
 - name: set-pipeline
