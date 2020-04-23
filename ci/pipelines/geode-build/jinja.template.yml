@@ -334,8 +334,6 @@ jobs:
   plan:
   - in_parallel:
     - get: oci-build-task-image
-    - get: alpine-docker-image
-      trigger: true
     - get: concourse-metadata-resource-dockerfile
       trigger: true
   - task: build-concourse-metadata-image

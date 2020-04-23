@@ -231,8 +231,6 @@ fi
 
 unpausePipeline ${META_PIPELINE}
 driveToGreen $META_PIPELINE build-alpine-tools-docker-image
-#driveToGreen ${PIPELINE_PREFIX}images build-google-geode-builder
-#driveToGreen ${PIPELINE_PREFIX}images build-google-windows-geode-builder
 driveToGreen $META_PIPELINE set-pipeline
 unpausePipeline ${PIPELINE_PREFIX}main
 
