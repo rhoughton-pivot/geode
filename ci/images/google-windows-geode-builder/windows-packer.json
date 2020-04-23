@@ -27,7 +27,7 @@
       "winrm_use_ssl": true,
       "state_timeout": "10m",
       "metadata": {
-        "windows-startup-script-cmd": "winrm quickconfig -quiet & net user /add geode & net localgroup administrators geode /add & winrm set winrm/config/service/auth @{Basic=\"true\"}"
+        "windows-startup-script-cmd": "winrm quickconfig -transport:https -quiet & net user /add geode & net localgroup administrators geode /add & winrm set winrm/config/service/auth @{Basic=\"true\"}"
       },
       "zone": "us-central1-a",
       "tags": ["packer"],
