@@ -15,28 +15,60 @@
 
 package org.apache.geode.redis;
 
+
+import java.util.Random;
+
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Ignore;
+import org.junit.Test;
 import org.junit.experimental.categories.Category;
+import org.junit.rules.TestRule;
 import org.testcontainers.containers.GenericContainer;
 import redis.clients.jedis.Jedis;
 
-import org.apache.geode.redis.general.ExpireAtIntegrationTest;
 import org.apache.geode.test.junit.categories.RedisTest;
+import org.apache.geode.test.junit.rules.IgnoreOnWindowsRule;
 
 @Category({RedisTest.class})
-public class ExpireAtDockerAcceptanceTest extends ExpireAtIntegrationTest {
+public class RenameNativeRedisAcceptanceTest extends RenameIntegrationTest {
+
+  private static GenericContainer redisContainer;
+
+  // Docker compose does not work on windows in CI. Ignore this test on windows
+  // Using a RuleChain to make sure we ignore the test before the rule comes into play
+  @ClassRule
+  public static TestRule ignoreOnWindowsRule = new IgnoreOnWindowsRule();
 
   @BeforeClass
   public static void setUp() {
-    GenericContainer redisContainer = new GenericContainer<>("redis:5.0.6").withExposedPorts(6379);
+    rand = new Random();
+    redisContainer = new GenericContainer<>("redis:5.0.6").withExposedPorts(6379);
     redisContainer.start();
     jedis = new Jedis("localhost", redisContainer.getFirstMappedPort(), REDIS_CLIENT_TIMEOUT);
   }
 
   @AfterClass
-  public static void classLevelTearDown() {
+  public static void tearDown() {
     jedis.close();
   }
 
+  public int getPort() {
+    return redisContainer.getFirstMappedPort();
+  }
+
+  @Test
+  public void testSortedSet() {
+    // TODO: GEODE-7910 Update RENAME command in Geode Redis to match native Redis
+  }
+
+  @Test
+  public void testList() {
+    // TODO: GEODE-7910 Update RENAME command in Geode Redis to match native Redis
+  }
+
+  @Test
+  @Ignore("Test only applies to Geode Redis, ignored for native Redis")
+  public void testProtectedString() {}
 }

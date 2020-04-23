@@ -14,8 +14,6 @@
  */
 package org.apache.geode.redis;
 
-import java.util.Random;
-
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -29,7 +27,7 @@ import org.apache.geode.test.junit.categories.RedisTest;
 import org.apache.geode.test.junit.rules.IgnoreOnWindowsRule;
 
 @Category({RedisTest.class})
-public class StringsDockerAcceptanceTest extends StringsIntegrationTest {
+public class GeoNativeRedisAcceptanceTest extends GeoIntegrationTest {
 
   // Docker compose does not work on windows in CI. Ignore this test on windows
   // Using a RuleChain to make sure we ignore the test before the rule comes into play
@@ -40,24 +38,48 @@ public class StringsDockerAcceptanceTest extends StringsIntegrationTest {
   public static void setUp() {
     GenericContainer redisContainer = new GenericContainer<>("redis:5.0.6").withExposedPorts(6379);
     redisContainer.start();
-    rand = new Random();
     jedis = new Jedis("localhost", redisContainer.getFirstMappedPort(), 10000000);
-    jedis2 = new Jedis("localhost", redisContainer.getFirstMappedPort(), 10000000);
   }
 
   @AfterClass
   public static void tearDown() {
     jedis.close();
-    jedis2.close();
+  }
+
+  // TODO: See JIRA GEODE-7909 Update Geo* commands in Geode Redis to match native Redis
+
+  @Test
+  public void testGeoHash() {
+    // TODO: See JIRA GEODE-7909 Update Geo* commands in Geode Redis to match native Redis
   }
 
   @Test
-  public void testSet_keyExistsWithDifferentDataType_returnsRedisDataTypeMismatchException() {
-    // TODO: Fix implementation of SET to always succeed regardless of data type, like Native Redis
+  public void testGeoRadiusByMemberWithCoord() {
+    // TODO: See JIRA GEODE-7909 Update Geo* commands in Geode Redis to match native Redis
   }
 
   @Test
-  public void testSet_protectedRedisDataType_throwsRedisDataTypeMismatchException() {
-    // There are no protected data types in Native Redis
+  public void testGeoRadiusByMemberFull() {
+    // TODO: See JIRA GEODE-7909 Update Geo* commands in Geode Redis to match native Redis
+  }
+
+  @Test
+  public void testGeoRadiusByMemberBasic() {
+    // TODO: See JIRA GEODE-7909 Update Geo* commands in Geode Redis to match native Redis
+  }
+
+  @Test
+  public void testGeoRadiusByMemberNorth() {
+    // TODO: See JIRA GEODE-7909 Update Geo* commands in Geode Redis to match native Redis
+  }
+
+  @Test
+  public void testGeoPos() {
+    // TODO: See JIRA GEODE-7909 Update Geo* commands in Geode Redis to match native Redis
+  }
+
+  @Test
+  public void testGeoRadiusByMemberWithDist() {
+    // TODO: See JIRA GEODE-7909 Update Geo* commands in Geode Redis to match native Redis
   }
 }

@@ -12,33 +12,37 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-
 package org.apache.geode.redis;
+
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.experimental.categories.Category;
+import org.junit.rules.TestRule;
 import org.testcontainers.containers.GenericContainer;
 import redis.clients.jedis.Jedis;
 
-import org.apache.geode.redis.general.PexpireIntegrationTest;
 import org.apache.geode.test.junit.categories.RedisTest;
+import org.apache.geode.test.junit.rules.IgnoreOnWindowsRule;
 
 @Category({RedisTest.class})
-public class PexpireDockerAcceptanceTest extends PexpireIntegrationTest {
+public class ListsNativeRedisAcceptanceTest extends ListsIntegrationTest {
 
-  private static GenericContainer redisContainer;
+  // Docker compose does not work on windows in CI. Ignore this test on windows
+  // Using a RuleChain to make sure we ignore the test before the rule comes into play
+  @ClassRule
+  public static TestRule ignoreOnWindowsRule = new IgnoreOnWindowsRule();
 
   @BeforeClass
   public static void setUp() {
-    redisContainer = new GenericContainer<>("redis:5.0.6").withExposedPorts(6379);
+    GenericContainer redisContainer = new GenericContainer<>("redis:5.0.6").withExposedPorts(6379);
     redisContainer.start();
-    jedis = new Jedis("localhost", redisContainer.getFirstMappedPort(), REDIS_CLIENT_TIMEOUT);
+    jedis = new Jedis("localhost", redisContainer.getFirstMappedPort(), 10000000);
   }
 
   @AfterClass
-  public static void classLevelTearDown() {
+  public static void tearDown() {
     jedis.close();
   }
-
 }

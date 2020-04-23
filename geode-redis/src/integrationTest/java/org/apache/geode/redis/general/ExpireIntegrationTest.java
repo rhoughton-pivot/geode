@@ -142,7 +142,7 @@ public class ExpireIntegrationTest {
     String key = "sicily";
     double latitude = 13.361389;
     double longitude = 38.115556;
-    String member = "Palermo Catina";
+    String member = "Palermo Catania";
 
     jedis.geoadd(key, latitude, longitude, member);
 
@@ -434,19 +434,6 @@ public class ExpireIntegrationTest {
 
     Long timeToLive = jedis.ttl(key2);
     assertThat(timeToLive).isGreaterThanOrEqualTo(15);
-  }
-
-  @Test
-  public void PERSISTCommand_ShouldClearExpirationTimeForGivenKey() {
-    String key = "key";
-    String value = "value";
-    jedis.set(key, value);
-    jedis.expire(key, 20);
-
-    jedis.persist(key);
-
-    Long timeToLive = jedis.ttl(key);
-    assertThat(timeToLive).isEqualTo(-1);
   }
 
   @Test

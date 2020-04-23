@@ -12,14 +12,14 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-
 package org.apache.geode.redis;
 
-
+import java.util.Random;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.rules.TestRule;
 import org.testcontainers.containers.GenericContainer;
@@ -29,9 +29,7 @@ import org.apache.geode.test.junit.categories.RedisTest;
 import org.apache.geode.test.junit.rules.IgnoreOnWindowsRule;
 
 @Category({RedisTest.class})
-public class PubSubDockerAcceptanceTest extends PubSubIntegrationTest {
-
-  private static GenericContainer redisContainer;
+public class StringsNativeRedisAcceptanceTest extends StringsIntegrationTest {
 
   // Docker compose does not work on windows in CI. Ignore this test on windows
   // Using a RuleChain to make sure we ignore the test before the rule comes into play
@@ -40,19 +38,26 @@ public class PubSubDockerAcceptanceTest extends PubSubIntegrationTest {
 
   @BeforeClass
   public static void setUp() {
-    redisContainer = new GenericContainer<>("redis:5.0.6").withExposedPorts(6379);
+    GenericContainer redisContainer = new GenericContainer<>("redis:5.0.6").withExposedPorts(6379);
     redisContainer.start();
-    subscriber = new Jedis("localhost", redisContainer.getFirstMappedPort(), REDIS_CLIENT_TIMEOUT);
-    publisher = new Jedis("localhost", redisContainer.getFirstMappedPort(), REDIS_CLIENT_TIMEOUT);
+    rand = new Random();
+    jedis = new Jedis("localhost", redisContainer.getFirstMappedPort(), 10000000);
+    jedis2 = new Jedis("localhost", redisContainer.getFirstMappedPort(), 10000000);
   }
 
   @AfterClass
   public static void tearDown() {
-    subscriber.close();
-    publisher.close();
+    jedis.close();
+    jedis2.close();
   }
 
-  public int getPort() {
-    return redisContainer.getFirstMappedPort();
+  @Test
+  public void testSet_keyExistsWithDifferentDataType_returnsRedisDataTypeMismatchException() {
+    // TODO: Fix implementation of SET to always succeed regardless of data type, like Native Redis
+  }
+
+  @Test
+  public void testSet_protectedRedisDataType_throwsRedisDataTypeMismatchException() {
+    // There are no protected data types in Native Redis
   }
 }
