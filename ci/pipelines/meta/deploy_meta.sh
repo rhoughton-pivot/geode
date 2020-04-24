@@ -25,48 +25,11 @@ while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symli
 done
 SCRIPTDIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
-for cmd in Jinja2 PyYAML; do
-  if ! [[ $(pip3 list |grep ${cmd}) ]]; then
-    echo "${cmd} must be installed for pipeline deployment to work."
-    echo " 'pip3 install ${cmd}'"
-    echo ""
-    exit 1
-  fi
-done
+. ${SCRIPTDIR}/../shared/utilities.sh
 
-META_PROPERTIES=${SCRIPTDIR}/meta.properties
-LOCAL_META_PROPERTIES=${SCRIPTDIR}/meta.properties.local
+checkRequiredPythonModules
+parseMetaProperties
 
-## Load default properties
-source ${META_PROPERTIES}
-echo "**************************************************"
-echo "Default Environment variables for this deployment:"
-cat ${SCRIPTDIR}/meta.properties | grep -v "^#"
-source ${META_PROPERTIES}
-GEODE_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-echo GEODE_BRANCH=${GEODE_BRANCH}
-echo "**************************************************"
-
-## Load local overrides properties file
-if [[ -f ${LOCAL_META_PROPERTIES} ]]; then
-  echo "Local Environment overrides for this deployment:"
-  cat ${SCRIPTDIR}/meta.properties.local
-  source ${LOCAL_META_PROPERTIES}
-  echo "**************************************************"
-else
-  git remote -v | awk '/fetch/{sub("/[^/]*$","");sub(".*[/:]","");if($0!="apache")print}' | while read fork; do
-    echo "to deploy a pipeline for $fork, press x then"
-    echo "echo GEODE_FORK=$fork > ${LOCAL_META_PROPERTIES}"
-  done
-  echo "**************************************************"
-fi
-
-read -n 1 -s -r -p "Press any key to continue or x to abort" DEPLOY
-echo
-if [[ "${DEPLOY}" == "x" ]]; then
-  echo "x pressed, aborting deploy."
-  exit 0
-fi
 set -e
 set -x
 
@@ -76,7 +39,7 @@ fi
 CONCOURSE_URL=${CONCOURSE_SCHEME:-"http"}://${CONCOURSE_HOST}
 FLY_TARGET=${CONCOURSE_HOST}-${CONCOURSE_TEAM}
 
-. ${SCRIPTDIR}/../shared/utilities.sh
+
 SANITIZED_GEODE_BRANCH=$(getSanitizedBranch ${GEODE_BRANCH})
 SANITIZED_GEODE_FORK=$(getSanitizedFork ${GEODE_FORK})
 
@@ -259,26 +222,22 @@ if [[ "${GEODE_FORK}" != "${UPSTREAM_FORK}" ]]; then
   pauseNewJobs ${META_PIPELINE} set-metrics-pipeline
 elif [[ "$GEODE_FORK" == "${UPSTREAM_FORK}" ]] && [[ "$GEODE_BRANCH" == "develop" ]]; then
   echo "Disabling optional jobs for develop"
-  pauseNewJobs ${META_PIPELINE} set-pr-pipeline set-metrics-pipeline set-examples-pipeline
+  pauseNewJobs ${META_PIPELINE} set-metrics-pipeline set-examples-pipeline
 else
   echo "Disabling unnecessary jobs for support branches."
   echo "*** DO NOT RE-ENABLE THESE META-JOBS ***"
-  pauseJobs ${META_PIPELINE} set-images-pipeline set-reaper-pipeline
-  pauseNewJobs ${META_PIPELINE} set-pr-pipeline set-metrics-pipeline set-examples-pipeline
+  pauseJobs ${META_PIPELINE} set-reaper-pipeline
+  pauseNewJobs ${META_PIPELINE} set-metrics-pipeline set-examples-pipeline
 fi
 
 unpausePipeline ${META_PIPELINE}
-driveToGreen $META_PIPELINE build-meta-mini-docker-image
-driveToGreen $META_PIPELINE set-images-pipeline
-unpausePipeline ${PIPELINE_PREFIX}images
-driveToGreen ${PIPELINE_PREFIX}images build-google-geode-builder
-driveToGreen ${PIPELINE_PREFIX}images build-google-windows-geode-builder
+driveToGreen $META_PIPELINE build-alpine-tools-docker-image
 driveToGreen $META_PIPELINE set-pipeline
 unpausePipeline ${PIPELINE_PREFIX}main
 
 if [[ "$GEODE_FORK" == "${UPSTREAM_FORK}" ]]; then
   if [[ "${PUBLIC}" == "true" ]]; then
-    exposePipelines ${PIPELINE_PREFIX}main ${PIPELINE_PREFIX}images
+    exposePipelines ${PIPELINE_PREFIX}main
     enableFeature metrics
     enableFeature examples
   fi

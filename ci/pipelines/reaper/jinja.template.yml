@@ -16,6 +16,7 @@
 #
 
 
+{% from 'shared_jinja.yml' import github_access with context %}
 ---
 
 resource_types:
@@ -28,6 +29,27 @@ resource_types:
     tag: latest
 
 resources:
+- name: oci-build-task-image
+  icon: docker
+  type: registry-image
+  source:
+    repository: vito/oci-build-task
+- name: gce-instances-resource-dockerfile
+  icon: github-circle
+  type: git
+  source:
+    {{ github_access() | indent(4) }}
+    branch: ((geode-build-branch))
+    paths:
+      - ci/resource-types/gce-instances-resource/*
+- name: gce-instances-resource-docker-image
+  icon: docker
+  type: registry-image
+  source:
+    username: ((docker-username))
+    password: ((docker-password))
+    repository: gcr.io/((gcp-project))/((pipeline-prefix))gce-instances-resource
+
 - name: four-times-a-day
   type: time
   source:
@@ -50,7 +72,8 @@ resources:
     filter: 'labels.time-to-live:* AND labels.time-to-live<$(($(date +%s) - 86400)) AND status:TERMINATED'
 
 - name: alpine-tools-image
-  type: docker-image
+  icon: docker
+  type: registry-image
   source:
     username: ((docker-username))
     password: ((docker-password))
@@ -58,15 +81,42 @@ resources:
     tag: latest
 
 - name: google-cloud-sdk-image
-  type: docker-image
+  icon: docker
+  type: registry-image
   source:
     repository: google/cloud-sdk
     tag: alpine
 
 jobs:
+- name: build-gce-instances-resource-docker-image
+  public: ((public-pipelines))
+  serial: true
+  plan:
+  - in_parallel:
+    - get: google-cloud-sdk-image
+    - get: oci-build-task-image
+    - get: gce-instances-resource-dockerfile
+      trigger: true
+  - task: build-gce-instances-container-image
+    image: oci-build-task-image
+    privileged: true
+    config:
+      platform: linux
+      params:
+        CONTEXT: gce-instances-resource-dockerfile/ci/resource-types/gce-instances-resource
+      inputs:
+      - name: gce-instances-resource-dockerfile
+      outputs:
+      - name: image
+      run:
+        path: build
+  - put: gce-instances-resource-docker-image
+    params:
+      image: image/image.tar
+
 - name: stop-instance
   plan:
-  - aggregate:
+  - in_parallel:
     - get: google-cloud-sdk-image
     - get: stoppable-instance
       version: every
@@ -86,7 +136,7 @@ jobs:
 
 - name: delete-instance
   plan:
-  - aggregate:
+  - in_parallel:
     - get: google-cloud-sdk-image
     - get: deletable-instance
       version: every
@@ -106,7 +156,7 @@ jobs:
 
 - name: reap-benchmark-instances
   plan:
-  - aggregate:
+  - in_parallel:
     - get: alpine-tools-image
     - get: four-times-a-day
       trigger: true

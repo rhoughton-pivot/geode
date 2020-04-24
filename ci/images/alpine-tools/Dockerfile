@@ -29,8 +29,8 @@ RUN apk --no-cache add \
       musl-dev \
       openssh-client \
       openssl \
-      python \
-      py2-pip \
+      python3 \
+      py3-pip \
       rsync \
       util-linux \
   && gcloud config set core/disable_usage_reporting true \
@@ -42,5 +42,9 @@ RUN apk --no-cache add \
   && rm -rf winrm-cli \
   && gcloud components install -q beta \
   && printf "Host *\n  ServerAliveInterval 60 \n  ServerAliveCountMax 2\n" >> /etc/ssh/ssh_config \
-  && pip2 install awscli \
+  && pip3 install --upgrade pip \
+  && pip3 install \
+       Jinja2 \
+       awscli \
+       pyYAML \
   && apk --no-cache del go make
