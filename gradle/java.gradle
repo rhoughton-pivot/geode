@@ -23,6 +23,11 @@ if (project.name.endsWith("geode-all-bom")) {
   apply plugin: 'java-platform'
 }
 apply plugin: 'java-library'
+apply plugin: 'com.palantir.revapi'
+
+revapi {
+  oldVersion = '1.12.0'
+}
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8

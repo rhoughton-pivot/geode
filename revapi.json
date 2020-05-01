@@ -1,0 +1,39 @@
+[
+  {
+    "extension": "revapi.java",
+    "configuration": {
+      "reportUsesFor": [],
+      "filter": {
+        "classes": {
+          "regex": true,
+          "exclude": [
+            ".*\\$$",
+            ]
+        },
+        "packages": {
+          "regex": true,
+          "excludes": [
+            "org\\.apache\\.geode\\.pdx\\.internal",
+          ]
+        }
+      }
+    }
+  }
+]
+//{
+//  "filters": {
+//    "revapi": {
+//      "java": {
+//        "filter": {
+//          "packages": {
+//            "regex": true,
+//            "exclude": [
+//              ".*internal(\\..*)?"
+//".*((\\.internal.+)?"
+//            ]
+//          }
+//        }
+//      }
+//    }
+//  }
+//}
