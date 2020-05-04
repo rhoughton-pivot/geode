@@ -176,9 +176,9 @@ dependencies {
     geodeArchives(project(it))
   }
   geodeArchives project(':geode-management')
-  geodeArchives project(':geode-web')
-  geodeArchives project(':geode-web-api')
-  geodeArchives project(':geode-web-management')
+  geodeArchives project(path: ':geode-web', configuration: 'war')
+  geodeArchives project(path: ':geode-web-api', configuration: 'war')
+  geodeArchives project(path: ':geode-web-management', configuration: 'war')
 
   javadocOnly project(':extensions:geode-modules')
   javadocOnly project(':extensions:geode-modules-session')
