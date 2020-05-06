@@ -125,7 +125,7 @@ popd
 
 API_CHECK_REPORT=$(ls ${GEODE_BUILD}/geode-assembly/build/reports/rich-report-japi*.html)
 if [ -n "${API_CHECK_REPORT}" ]; then
-  gsutil -q cp ${API_CHECK_REPORT} gs://${TEST_RESULTS_DESTINATION}/api_check_report.html
+  gsutil -q cp ${API_CHECK_REPORT} gs://${TEST_RESULTS_DESTINATION}api_check_report.html
 fi
 
 gsutil cp ${DEST_DIR}/${FILENAME} gs://${TEST_ARTIFACTS_DESTINATION}
