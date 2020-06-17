@@ -216,6 +216,7 @@ jobs:
     {{- plan_resource_gets(test) |indent(4) }}
       - put: concourse-metadata-resource
       - get: alpine-tools-image
+        passed: [TriggerMassRum]
       - get: {{ test.PLATFORM}}-builder-image-family
     - do:
       {{ init_retry()|indent(6) }}
