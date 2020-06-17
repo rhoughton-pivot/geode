@@ -340,7 +340,7 @@ jobs:
   plan:
   - in_parallel:
     - get: alpine-tools-image
-      passed: [TriggerMassTestRun]
+      passed: [TriggerMassRun]
     - get: test-finish-time
       passed: [{{test.name}}Test{{java_test_version.name}}]
       trigger: true
