@@ -345,7 +345,7 @@ jobs:
       passed: [{{test.name}}Test{{java_test_version.name}}]
       trigger: true
     - put: concourse-metadata-resource
-  task:
+  - task:
     image: alpine-tools-image
     config:
       platform: linux
