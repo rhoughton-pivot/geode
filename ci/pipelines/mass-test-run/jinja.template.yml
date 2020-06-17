@@ -334,26 +334,22 @@ jobs:
   ensure:
     put: test-finish-time
 
-- name: create-report
-  public: ((public-pipelines))
+- name: poll-for-test-completion
+  public: ((public-pipeline))
   serial: true
   plan:
   - in_parallel:
-    - get: geode-ci
-      params:
-        depth: 1
     - get: alpine-tools-image
-      passed: [TriggerMassRun]
-    - put: concourse-metadata-resource
+      passed: [TriggerMassTestRun]
     - get: test-finish-time
       passed: [{{test.name}}Test{{java_test_version.name}}]
       trigger: true
-  - task: create-job-performance-report
+    - put: concourse-metadata-resource
+  task:
     image: alpine-tools-image
     config:
       platform: linux
       inputs:
-      - name: geode-ci
       - name: concourse-metadata-resource
       run:
         path: bash
@@ -379,13 +375,50 @@ jobs:
           status=$(echo "${latest_job}" | jq -r .status)
           case ${status} in
             started | pending)
-              echo "Waiting on jobs to finish"
+              echo "Waiting on job ["${count}"] to finish"
               exit 1
               ;;
             succeeded | errored | failed | aborted | *)
               echo "Job [${count}] status is: [${status}]. Processing"
               ;;
           esac
+          exit 0
+
+- name: create-mass-test-run-report
+  public: ((public-pipelines))
+  serial: true
+  plan:
+  - in_parallel:
+    - get: geode-ci
+      params:
+        depth: 1
+    - get: alpine-tools-image
+      passed: [poll-for-test-completion]
+    - put: concourse-metadata-resource
+    - get: test-finish-time
+      passed: [poll-for-test-completion]
+      trigger: true
+  - task: create-job-performance-report
+    image: alpine-tools-image
+    config:
+      platform: linux
+      inputs:
+      - name: geode-ci
+      - name: concourse-metadata-resource
+      run:
+        path: bash
+        args:
+        - -ec
+        - |
+          . concourse-metadata-resource/concourse_metadata
+          curl -L -k -o fly "((concourse-url))/api/v1/cli?arch=amd64&platform=linux"
+          chmod +x fly
+          job="{{test.name}}Test{{java_test_version.name}}"
+          ./fly -t cc login \
+            --concourse-url=((concourse-url)) \
+            --team-name=((concourse-team)) \
+            --username=((concourse-username)) \
+            --password=((concourse-password))
 
           set -x
           pip3 install -r geode-ci/ci/bin/concourse_job_performance_requirements.txt
