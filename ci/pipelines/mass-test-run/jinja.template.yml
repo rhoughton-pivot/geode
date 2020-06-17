@@ -89,6 +89,11 @@ resources:
   type: time
   source:
     interval: 168h
+- name: test-finish-time
+  type: time
+  source:
+    interval: 168h
+
 - name: concourse-metadata-resource
   type: concourse-metadata-resource
   source: {}
@@ -326,6 +331,8 @@ jobs:
                       - name: instance-data-{{java_test_version.name}}
                         path: instance-data
                     timeout: 1h
+  ensure:
+    put: test-finish-time
 
 - name: create-report
   public: ((public-pipelines))
@@ -337,7 +344,8 @@ jobs:
         depth: 1
     - get: alpine-tools-image
       passed: [TriggerMassRun]
-    - get: concourse-metadata-resource
+    - put: concourse-metadata-resource
+    - get: test-finish-time
       passed: [{{test.name}}Test{{java_test_version.name}}]
       trigger: true
   - task: create-job-performance-report
