@@ -335,7 +335,7 @@ jobs:
     put: test-finish-time
 
 - name: poll-for-test-completion
-  public: ((public-pipeline))
+  public: ((public-pipelines))
   serial: true
   plan:
   - in_parallel:
