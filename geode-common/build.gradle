@@ -15,10 +15,6 @@
  * limitations under the License.
  */
 
-plugins {
-  id 'com.google.cloud.tools.jib'
-}
-
 apply from: "${rootDir}/${scriptDir}/standard-subproject-configuration.gradle"
 
 apply from: "${project.projectDir}/../gradle/publish-java.gradle"
@@ -30,18 +26,3 @@ dependencies {
   testImplementation('junit:junit')
   testImplementation('org.assertj:assertj-core')
 }
-
-
-jib {
-  from {
-    image = 'openjdk:8-jre-slim'
-  }
-  to {
-    image = 'gcr.io/gemfire-testing/geode-jib-test-image'
-  }
-  container {
-    mainClass = 'Main'
-  }
-}
-
-//tasks.jib.dependsOn tasks.jar

@@ -15,6 +15,10 @@
  * limitations under the License.
  */
 
+plugins {
+  id 'com.google.cloud.tools.jib'
+}
+
 apply from: "${rootDir}/${scriptDir}/standard-subproject-configuration.gradle"
 
 apply from: "${project.projectDir}/../gradle/publish-java.gradle"
@@ -75,4 +79,17 @@ dependencies {
         exclude module: 'spring-context-support'
         exclude module: 'spring-core'
     }
+}
+
+jib {
+  from {
+    image = 'bellsoft/liberica-openjdk-alpine:11'
+  }
+  to {
+    image = 'gcr.io/gemfire-testing/geode-jib-geode-gfsh'
+  }
+  container {
+    mainClass = 'org.apache.geode.management.internal.cli.Launcher'
+    format = 'OCI'
+  }
 }

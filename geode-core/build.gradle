@@ -16,7 +16,8 @@
  */
 
 plugins {
-    id 'me.champeau.gradle.jmh' version '0.4.8'
+  id 'me.champeau.gradle.jmh' version '0.4.8'
+  id 'com.google.cloud.tools.jib'
 }
 
 apply from: "${rootDir}/${scriptDir}/standard-subproject-configuration.gradle"
@@ -155,6 +156,8 @@ configurations {
     jmh {
         extendsFrom testImplementation
     }
+
+    jibRuntime
 }
 
 dependencies {
@@ -397,6 +400,14 @@ dependencies {
         exclude module: 'geode-core'
     }
     performanceTestImplementation(project(':geode-log4j'))
+
+  jibRuntime(platform(project(':boms:geode-all-bom')))
+  jibRuntime('org.apache.logging.log4j:log4j-core') {
+    transitive = false
+  }
+  jibRuntime('org.apache.logging.log4j:log4j-slf4j-impl') {
+    transitive = false
+  }
 }
 
 jmh {
@@ -430,3 +441,45 @@ distributedTest {
 }
 
 rootProject.generate.dependsOn(generateGrammarSource)
+
+
+
+jib {
+  from {
+    image = 'gcr.io/distroless/java:11'
+//    image = 'bellsoft/liberica-openjdk-alpine:11'
+  }
+  to {
+    image = 'gcr.io/gemfire-testing/geode-jib-core-locator'
+  }
+  container {
+    mainClass = 'org.apache.geode.distributed.LocatorLauncher'
+//    entrypoint = 'sh'
+    jvmFlags = [
+            '-Dgemfire.enable-cluster-configuration=true',
+            '-Dgemfire.load-cluster-configuration-from-dir=false',
+            '-Dgemfire.launcher.registerSignalHandlers=true',
+            '-Djava.awt.headless=true',
+            '-Dsun.rmi.dgc.server.gcInterval=9223372036854775806'
+    ]
+    args = ['start']
+    format = 'OCI'
+    ports = ['10334', '1099', '7070']
+    extraClasspath = ['/app/extraLibs/*']
+  }
+
+  def extraDirs = []
+  def collection = configurations.jibRuntime.files
+  collection.each {  extraDirs += it.parent  }
+
+  extraDirectories {
+    paths {
+      extraDirs.each { extraDep ->
+        path {
+          from = extraDep
+          into = '/app/extraLibs'
+        }
+      }
+    }
+  }
+}
