@@ -468,15 +468,11 @@ jib {
     extraClasspath = ['/app/extraLibs/*']
   }
 
-  def extraDirs = []
-  def collection = configurations.jibRuntime.files
-  collection.each {  extraDirs += it.parent  }
-
   extraDirectories {
     paths {
-      extraDirs.each { extraDep ->
+      configurations.jibRuntime.files.each { extraDep ->
         path {
-          from = extraDep
+          from = extraDep.parent
           into = '/app/extraLibs'
         }
       }
