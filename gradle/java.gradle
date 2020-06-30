@@ -58,6 +58,11 @@ gradle.taskGraph.whenReady({ graph ->
   }
 })
 
+jar {
+  preserveFileTimestamps false
+  reproducibleFileOrder true
+}
+
 // apply default manifest
 gradle.taskGraph.whenReady({ graph ->
   tasks.withType(Jar).each { jar ->
@@ -112,3 +117,5 @@ javadoc {
 
   classpath += configurations.compileOnly
 }
+
+
