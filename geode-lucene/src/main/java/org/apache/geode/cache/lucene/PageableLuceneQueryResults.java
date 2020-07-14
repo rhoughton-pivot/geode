@@ -62,3 +62,4 @@ public interface PageableLuceneQueryResults<K, V> extends Iterator<List<LuceneRe
   @Override
   boolean hasNext();
 }
+

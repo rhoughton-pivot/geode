@@ -7,7 +7,8 @@ exit_zero_if_source_from_pr() {
   if [ -d "${github_pr_dir}" ]; then
     files=$(git diff --name-only $(cat "${github_pr_dir}/base_sha") $(cat"${github_pr_dir}/head_sha"))
     for f in $files; do
-      echo "${f}"
+      # is in ci dir
+      find "${base_dir}" -path "ci" -prune -name "${f}"
     done
   else
     echo "repo is not from a PR"
