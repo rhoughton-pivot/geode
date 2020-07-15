@@ -420,3 +420,4 @@ jobs:
     params:
       build: gcs-resource-with-json-content
       tag_as_latest: true
+
