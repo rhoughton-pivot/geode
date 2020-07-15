@@ -31,7 +31,7 @@ SCRIPTDIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
 REPODIR=$(cd geode; git rev-parse --show-toplevel)
 
-. ${SCRIPTDIR}./ci/scripts/short_circuit_pr_tasks.sh
+. ${SCRIPTDIR}/short_circuit_pr_tasks.sh
 cd geode
   is_source_from_pr_testable "ci" "dev-tools" "etc" "geode-book" "geode-docs" || exit 0
 cd ..

@@ -34,7 +34,7 @@ if [[ -z "${GRADLE_TASK}" ]]; then
   exit 1
 fi
 
-. ${SCRIPTDIR}./ci/scripts/short_circuit_pr_tasks.sh
+. ${SCRIPTDIR}/short_circuit_pr_tasks.sh
 cd geode
   is_source_from_pr_testable "ci" "dev-tools" "etc" "geode-book" "geode-docs" || exit 0
 cd ..
