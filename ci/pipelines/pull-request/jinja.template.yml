@@ -341,7 +341,7 @@ jobs:
           GRADLE_GLOBAL_ARGS: ((gradle-global-args))
         run:
           {%- if test.name=="StressNew" %}
-          path: geode/ci/scripts/repeat-new-tests.sh
+          path: geode-ci/ci/scripts/repeat-new-tests.sh
           {%- else %}
           path: geode-ci/ci/scripts/execute_tests.sh
           {%- endif %}

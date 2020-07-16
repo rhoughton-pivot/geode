@@ -28,9 +28,9 @@ done
 SCRIPTDIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
 . ${SCRIPTDIR}/short_circuit_pr_tasks.sh
-cd geode
+pushd geode >& /dev/null
   is_source_from_pr_testable "ci" "dev-tools" "etc" "geode-book" "geode-docs" || exit 0
-cd ..
+popd geode >& /dev/null
 
 function changes_for_path() {
   pushd geode >> /dev/null
