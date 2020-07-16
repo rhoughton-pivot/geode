@@ -27,6 +27,7 @@ while [[ -h "$SOURCE" ]]; do # resolve $SOURCE until the file is no longer a sym
 done
 SCRIPTDIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
+set -x
 . ${SCRIPTDIR}/short_circuit_pr_tasks.sh
 pushd geode >& /dev/null
   is_source_from_pr_testable "ci" "dev-tools" "etc" "geode-book" "geode-docs" || exit 0
