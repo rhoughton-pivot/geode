@@ -49,7 +49,7 @@ if (project.hasProperty('parallelDunit')) {
 
 project.ext.dockerConfig = {
   maxParallelForks = dunitParallelForks.toInteger()
-
+  
   docker {
     // base image for creating docker containers that execute the tests
     image = dunitDockerImage
