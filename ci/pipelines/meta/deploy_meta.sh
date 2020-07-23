@@ -110,6 +110,30 @@ YML
 
   FLY=${FLY:-$(which fly)}
 
+  if [[ -z "${FLY}" ]]; then
+    unamestr=$(uname)
+    platform='unknown'
+    if [[ "${unamestr}" == 'Darwin' ]]; then
+      platform='darwin'
+    elif [[ "${unamestr}" == 'Linux' ]]; then
+      platform='linux'
+    fi
+
+    FLY_URL="${CONCOURSE_URL}/api/v1/cli?arch=amd64&platform=${platform}"
+    FLY="${SCRIPTDIR}/fly"
+    if [[ ! -e "${FLY}" ]]; then
+      curl -so ${FLY} ${FLY_URL}
+    fi
+    chmod +x ${FLY}
+    set +e
+    if [[ ! $(${FLY} targets | grep "${FLY_TARGET}") ]]; then
+      echo "Creating target for ${FLY_TARGET}"
+      ${FLY} -t ${FLY_TARGET} login -c "${CONCOURSE_URL}"
+    else
+      echo "Target ${FLY_TARGET} already exists."
+    fi
+  fi
+
   set -e
   if [[ ${UPSTREAM_FORK} != "apache" ]]; then
     ${FLY} -t ${FLY_TARGET} status || \

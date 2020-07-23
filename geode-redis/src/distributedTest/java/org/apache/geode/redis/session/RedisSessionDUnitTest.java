@@ -25,13 +25,13 @@ import org.junit.experimental.categories.Category;
 import org.apache.geode.test.junit.categories.RedisTest;
 
 @Category({RedisTest.class})
-public class RedisSessionDistDUnitTest extends SessionDUnitTest {
+public class RedisSessionDUnitTest extends SessionDUnitTest {
 
   @BeforeClass
   public static void setup() {
     SessionDUnitTest.setup();
-    startSpringApp(APP1, SERVER1, SERVER2, DEFAULT_SESSION_TIMEOUT);
-    startSpringApp(APP2, SERVER2, SERVER1, DEFAULT_SESSION_TIMEOUT);
+    startSpringApp(APP1, DEFAULT_SESSION_TIMEOUT, ports.get(SERVER1), ports.get(SERVER2));
+    startSpringApp(APP2, DEFAULT_SESSION_TIMEOUT, ports.get(SERVER2), ports.get(SERVER1));
   }
 
   @Test
@@ -85,7 +85,7 @@ public class RedisSessionDistDUnitTest extends SessionDUnitTest {
 
     String[] sessionNotes = getSessionNotes(APP2, sessionCookie);
 
-    assertThat(sessionNotes).containsExactly("noteFromClient2", "noteFromClient1");
+    assertThat(sessionNotes).containsExactlyInAnyOrder("noteFromClient2", "noteFromClient1");
   }
 
   @Test
@@ -112,7 +112,11 @@ public class RedisSessionDistDUnitTest extends SessionDUnitTest {
 
       assertThat(sessionNotes).containsExactly("noteFromClient2");
     } finally {
-      startSpringApp(APP2, SERVER1, SERVER2, DEFAULT_SESSION_TIMEOUT);
+      if (ports.get(SERVER2) == null) {
+        startSpringApp(APP2, SERVER1, DEFAULT_SESSION_TIMEOUT);
+      } else {
+        startSpringApp(APP2, SERVER1, SERVER2, DEFAULT_SESSION_TIMEOUT);
+      }
     }
   }
 }
