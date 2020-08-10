@@ -82,7 +82,7 @@ get_geode_pr_exclusion_dirs() {
 }
 
 is_source_from_pr_testable() {
-  if [[ $@ -ne 2 ]]; then
+  if [[ $# -ne 2 ]]; then
     >&2 echo "Invalid args. Try ${0} \"<repo_path>\" \"<list of exclusion dirs>\""
     exit 1
   fi
