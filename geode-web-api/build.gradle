@@ -40,7 +40,6 @@ dependencies {
 
   compileOnly('javax.servlet:javax.servlet-api')
 
-  implementation('org.apache.commons:commons-lang3')
   implementation('commons-fileupload:commons-fileupload') {
     exclude module: 'commons-io'
   }
@@ -59,7 +58,7 @@ dependencies {
     exclude module: 'swagger-annotations'
   }
 
-  implementation('io.springfox:springfox-swagger-ui') {
+  runtimeOnly('io.springfox:springfox-swagger-ui') {
     exclude module: 'slf4j-api'
   }
 

@@ -23,13 +23,6 @@ apply from: "${project.projectDir}/../gradle/publish-java.gradle"
 apply from: "${project.projectDir}/../gradle/pmd.gradle"
 apply from: "${project.projectDir}/../gradle/jmh.gradle"
 
-sourceSets {
-    jca {
-        compileClasspath += configurations.compileClasspath
-        runtimeClasspath += configurations.runtimeClasspath
-    }
-}
-
 idea {
     module {
         testSourceDirs += project.tasks.generateIntegrationTestGrammarSource.outputs.files
@@ -40,26 +33,6 @@ idea {
 }
 
 def generatedResources = "$buildDir/generated-resources/main"
-
-sourceSets {
-    main {
-        output.dir(generatedResources, builtBy: 'createVersionPropertiesFile')
-    }
-    test {
-        output.dir(generatedResources, builtBy: 'createVersionPropertiesFile')
-    }
-}
-
-sourceSets {
-// This works around resource-look up between integrationTest and test source-sets.
-// See GEODE-5803 / GEODE-5882
-    test.resources.srcDirs.each { testResourceSrc ->
-        integrationTest.resources.srcDir {
-            testResourceSrc
-        }
-    }
-}
-
 
 // Creates the version properties file and writes it to the classes dir
 task createVersionPropertiesFile(dependsOn: ':writeBuildInfo') {
@@ -99,6 +72,29 @@ task createVersionPropertiesFile(dependsOn: ':writeBuildInfo') {
     }
 }
 
+
+sourceSets {
+  jca {
+    compileClasspath += configurations.compileClasspath
+    runtimeClasspath += configurations.runtimeClasspath
+  }
+  main {
+    output.dir(generatedResources, builtBy: tasks.named('createVersionPropertiesFile'))
+  }
+  test {
+    output.dir(generatedResources, builtBy: tasks.named('createVersionPropertiesFile'))
+  }
+// This works around resource-look up between integrationTest and test source-sets.
+// See GEODE-5803 / GEODE-5882
+  test.resources.srcDirs.each { testResourceSrc ->
+    integrationTest.resources.srcDir {
+      testResourceSrc
+    }
+  }
+}
+
+
+
 ext.moduleName = group + '.core'
 
 jar {
@@ -126,14 +122,16 @@ repeatUpgradeTest {
   environment 'GEODE_HOME', "$buildDir/../../geode-assembly/build/install/apache-geode/"
 }
 
-task raJar(type: Jar, dependsOn: classes) {
+tasks.register('raJar', Jar) {
+    dependsOn classes
     description 'Assembles the jar archive that contains the JCA classes'
     from sourceSets.jca.output
     exclude 'org/apache/geode/ra/**'
     archiveName 'ra.jar'
 }
 
-task jcaJar(type: Jar, dependsOn: raJar) {
+tasks.register('jcaJar', Jar) {
+    dependsOn raJar
     description 'Assembles the jar archive that contains the JCA bundle'
     baseName 'geode-jca'
     extension 'rar'

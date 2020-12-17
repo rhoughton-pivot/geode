@@ -18,12 +18,13 @@
 allprojects {
   apply plugin: 'nebula.lint'
   gradleLint.rules = []
-  gradleLint.rules += 'overridden-dependency-version'
+//  gradleLint.rules += 'overridden-dependency-version'
   gradleLint.rules += 'unused-dependency'
-  gradleLint.rules += 'unused-exclude-by-dep'
-  gradleLint.rules += 'unused-exclude-by-conf'
+//  gradleLint.rules += 'unused-exclude-by-dep'
+//  gradleLint.rules += 'unused-exclude-by-conf'
 
   gradleLint.alwaysRun = false
   fixGradleLint.mustRunAfter(':combineReports')
   lintGradle.mustRunAfter(':combineReports')
+  gradleLint.reportFormat = 'xml'
 }
