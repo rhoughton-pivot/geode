@@ -86,11 +86,12 @@ sourceSets {
   }
 // This works around resource-look up between integrationTest and test source-sets.
 // See GEODE-5803 / GEODE-5882
-  test.resources.srcDirs.each { testResourceSrc ->
-    integrationTest.resources.srcDir {
-      testResourceSrc
-    }
-  }
+//  test.resources.srcDirs.each { testResourceSrc ->
+//    integrationTest.resources.srcDir {
+//      testResourceSrc
+//    }
+//  }
+  integrationTest.resources.srcDirs.addAll(test.resources.srcDirs)
 }
 
 
@@ -338,11 +339,11 @@ dependencies {
 
     testImplementation(files("${System.getProperty('java.home')}/../lib/tools.jar"))
 
-    testRuntime('commons-collections:commons-collections')
-    testRuntime('commons-configuration:commons-configuration')
-    testRuntime('commons-io:commons-io')
-    testRuntime('commons-validator:commons-validator')
-    testRuntime('com.pholser:junit-quickcheck-generators')
+    testRuntimeOnly('commons-collections:commons-collections')
+    testRuntimeOnly('commons-configuration:commons-configuration')
+    testRuntimeOnly('commons-io:commons-io')
+    testRuntimeOnly('commons-validator:commons-validator')
+    testRuntimeOnly('com.pholser:junit-quickcheck-generators')
 
     integrationTestImplementation(project(':geode-gfsh'))
     integrationTestImplementation(project(':geode-junit'))

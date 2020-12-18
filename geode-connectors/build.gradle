@@ -84,9 +84,6 @@ dependencies {
   implementation('org.apache.commons:commons-lang3')
   implementation('javax.xml.bind:jaxb-api')
   implementation('org.apache.logging.log4j:log4j-api')
-  implementation('org.apache.logging.log4j:log4j-jcl') {
-    ext.optional = true
-  }
   implementation('org.springframework.shell:spring-shell') {
     exclude module: 'aopalliance'
     exclude module: 'asm'
@@ -99,10 +96,16 @@ dependencies {
   }
   implementation('com.healthmarketscience.rmiio:rmiio')
 
+
+  runtimeOnly('org.apache.logging.log4j:log4j-jcl') {
+    ext.optional = true
+  }
+
+
   testImplementation('pl.pragmatists:JUnitParams')
+  testImplementation('org.assertj:assertj-core')
 
   integrationTestImplementation('junit:junit')
-  integrationTestImplementation('org.assertj:assertj-core')
   integrationTestImplementation('pl.pragmatists:JUnitParams')
 
   distributedTestImplementation('junit:junit')

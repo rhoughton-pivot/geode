@@ -30,23 +30,28 @@ dependencies {
 
 
   testImplementation(project(':geode-junit'))
+  testImplementation('junit:junit')
+  testImplementation('org.assertj:assertj-core')
+  testImplementation('org.mockito:mockito-core')
 
 
   integrationTestImplementation(project(':geode-dunit'))
   integrationTestImplementation(project(':geode-junit'))
   integrationTestImplementation('junit:junit')
-  integrationTestImplementation('org.awaitility:awaitility')
 
 
   distributedTestImplementation(project(':geode-gfsh'))
   distributedTestImplementation(project(':geode-junit'))
   distributedTestImplementation(project(':geode-dunit'))
+  distributedTestImplementation('com.google.guava:guava')
   distributedTestImplementation('org.apache.commons:commons-lang3')
   distributedTestImplementation('junit:junit')
+  distributedTestImplementation('org.mockito:mockito-core')
   distributedTestImplementation('mx4j:mx4j')
   distributedTestImplementation('org.assertj:assertj-core')
   distributedTestImplementation('org.awaitility:awaitility')
   distributedTestImplementation('org.hamcrest:hamcrest')
+  distributedTestImplementation('org.hamcrest:hamcrest-core')
   distributedTestImplementation('pl.pragmatists:JUnitParams')
 
 
