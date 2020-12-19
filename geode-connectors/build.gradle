@@ -54,31 +54,21 @@ dependencies {
   implementation(project(':geode-serialization'))
   implementation(project(':geode-core'))
   implementation(project(':geode-gfsh'))
+  implementation('commons-io:commons-io')
   implementation('org.apache.httpcomponents:httpcore')
   implementation('com.fasterxml.jackson.core:jackson-databind')
 
   testImplementation(project(':geode-membership'))
-  testImplementation(project(':geode-junit')) {
-    exclude module: 'geode-core'
-  }
-  integrationTestImplementation(project(':geode-dunit')) {
-    exclude module: 'geode-core'
-  }
-  integrationTestImplementation(project(':geode-junit')) {
-    exclude module: 'geode-core'
-  }
-  distributedTestImplementation(project(':geode-junit')) {
-    exclude module: 'geode-core'
-  }
-  distributedTestImplementation(project(':geode-dunit')){
-    exclude module: 'geode-core'
-  }
-  acceptanceTestImplementation(project(':geode-dunit')) {
-    exclude module: 'geode-core'
-  }
-  acceptanceTestImplementation(project(':geode-junit')) {
-    exclude module: 'geode-core'
-  }
+  testImplementation(project(':geode-junit'))
+
+  integrationTestImplementation(project(':geode-dunit'))
+  integrationTestImplementation(project(':geode-junit'))
+
+  distributedTestImplementation(project(':geode-junit'))
+  distributedTestImplementation(project(':geode-dunit'))
+
+  acceptanceTestImplementation(project(':geode-dunit'))
+  acceptanceTestImplementation(project(':geode-junit'))
 
   implementation('com.zaxxer:HikariCP')
   implementation('org.apache.commons:commons-lang3')
@@ -106,12 +96,10 @@ dependencies {
   testImplementation('org.assertj:assertj-core')
 
   integrationTestImplementation('junit:junit')
-  integrationTestImplementation('pl.pragmatists:JUnitParams')
 
   distributedTestImplementation('junit:junit')
   distributedTestImplementation('org.assertj:assertj-core')
   distributedTestImplementation('org.mockito:mockito-core')
-  distributedTestImplementation('pl.pragmatists:JUnitParams')
   distributedTestRuntimeOnly('org.apache.derby:derby')
 
   acceptanceTestImplementation('com.github.stefanbirkner:system-rules') {
@@ -122,7 +110,6 @@ dependencies {
   acceptanceTestImplementation('org.awaitility:awaitility')
   acceptanceTestImplementation('org.mockito:mockito-core')
   acceptanceTestImplementation('com.palantir.docker.compose:docker-compose-rule-core')
-  acceptanceTestImplementation('pl.pragmatists:JUnitParams')
   acceptanceTestImplementation('com.palantir.docker.compose:docker-compose-rule-junit4')
 
   acceptanceTestRuntimeOnly('mysql:mysql-connector-java')

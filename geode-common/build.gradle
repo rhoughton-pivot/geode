@@ -34,8 +34,4 @@ dependencies {
   testImplementation('org.assertj:assertj-core')
   testImplementation('org.mockito:mockito-core')
 
-
-  // jmhTest
-  jmhTestImplementation('junit:junit')
-  jmhTestImplementation('org.assertj:assertj-core')
 }
