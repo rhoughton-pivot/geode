@@ -22,35 +22,33 @@ apply from: "${project.projectDir}/../gradle/warnings.gradle"
 
 
 dependencies {
-  compile(platform(project(':boms:geode-all-bom')))
-  compile(project(':geode-common'))
-  compile(project(':geode-protobuf-messages'))
-  testImplementation(project(':geode-core'))
-  testImplementation(project(':geode-junit')) {
-    exclude module: 'geode-core'
-  }
-  testImplementation(project(':geode-protobuf'))
-  integrationTestImplementation(project(':geode-core'))
-  integrationTestImplementation(project(':geode-dunit')) {
-    exclude module: 'geode-core'
-  }
-  integrationTestImplementation(project(':geode-junit')) {
-    exclude module: 'geode-core'
-  }
-  integrationTestImplementation(project(':geode-protobuf'))
+  api(platform(project(':boms:geode-all-bom')))
+  api(project(':geode-common'))
 
+
+  implementation(project(':geode-protobuf-messages'))
   implementation('com.google.protobuf:protobuf-java')
 
+
+  testImplementation(project(':geode-core'))
+  testImplementation(project(':geode-junit'))
+  testImplementation(project(':geode-protobuf'))
+  testImplementation('junit:junit')
   testImplementation('com.github.stefanbirkner:system-rules') {
     exclude module: 'junit-dep'
   }
 
+
+  integrationTestImplementation(project(':geode-core'))
+  integrationTestImplementation(project(':geode-dunit'))
+  integrationTestImplementation(project(':geode-junit'))
+  integrationTestImplementation(project(':geode-protobuf'))
   integrationTestImplementation(project(':geode-logging'))
   integrationTestImplementation(project(':geode-serialization'))
   integrationTestImplementation('com.github.stefanbirkner:system-rules') {
     exclude module: 'junit-dep'
   }
   integrationTestImplementation('junit:junit')
+  integrationTestImplementation('org.mockito:mockito-core')
   integrationTestImplementation('org.assertj:assertj-core')
-  integrationTestImplementation('org.hamcrest:hamcrest')
 }

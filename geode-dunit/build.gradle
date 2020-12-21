@@ -28,15 +28,8 @@ dependencies {
   implementation(project(':geode-tcp-server'))
   implementation(project(':geode-core'))
   implementation(project(':geode-gfsh'))
-  implementation(project(':geode-log4j')) {
-    exclude module: 'geode-core'
-  }
-
-  compile(project(':geode-junit')) {
-    exclude module: 'geode-core'
-  }
-
-  implementation('com.jayway.jsonpath:json-path')
+  implementation(project(':geode-log4j'))
+  implementation(project(':geode-junit'))
   implementation('org.apache.logging.log4j:log4j-api')
   implementation('org.apache.logging.log4j:log4j-core')
   implementation('commons-io:commons-io')
@@ -52,19 +45,23 @@ dependencies {
     ext.optional = true
   }
   implementation('com.google.guava:guava')
-  implementation('com.github.stefanbirkner:system-rules') {
-    exclude module: 'junit-dep'
-  }
-
+  implementation('com.fasterxml.jackson.core:jackson-databind')
   implementation('org.assertj:assertj-core')
   implementation('org.mockito:mockito-core')
   implementation('org.awaitility:awaitility')
-  implementation('pl.pragmatists:JUnitParams')
-
+  implementation('org.apache.shiro:shiro-core')
+  implementation('jline:jline')
   implementation('junit:junit') {
     exclude module: 'hamcrest'
   }
 
+
+  testImplementation('pl.pragmatists:JUnitParams')
+
+
+  distributedTestImplementation('com.jayway.jsonpath:json-path')
+  distributedTestImplementation('org.hamcrest:hamcrest')
+  distributedTestImplementation('org.hamcrest:hamcrest-core')
   distributedTestRuntimeOnly(project(path: ':geode-old-versions', configuration: 'testOutput'))
 }
 

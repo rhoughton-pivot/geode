@@ -54,7 +54,7 @@
     <dependency>
       <groupId>org.apache.geode</groupId>
       <artifactId>geode-protobuf-messages</artifactId>
-      <scope>compile</scope>
+      <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>com.google.protobuf</groupId>

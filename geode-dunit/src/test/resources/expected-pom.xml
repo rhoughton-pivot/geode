@@ -48,17 +48,6 @@
   <dependencies>
     <dependency>
       <groupId>org.apache.geode</groupId>
-      <artifactId>geode-junit</artifactId>
-      <scope>compile</scope>
-      <exclusions>
-        <exclusion>
-          <artifactId>geode-core</artifactId>
-          <groupId>*</groupId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.geode</groupId>
       <artifactId>geode-logging</artifactId>
       <scope>runtime</scope>
     </dependency>
@@ -91,16 +80,10 @@
       <groupId>org.apache.geode</groupId>
       <artifactId>geode-log4j</artifactId>
       <scope>runtime</scope>
-      <exclusions>
-        <exclusion>
-          <artifactId>geode-core</artifactId>
-          <groupId>*</groupId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
-      <groupId>com.jayway.jsonpath</groupId>
-      <artifactId>json-path</artifactId>
+      <groupId>org.apache.geode</groupId>
+      <artifactId>geode-junit</artifactId>
       <scope>runtime</scope>
     </dependency>
     <dependency>
@@ -165,15 +148,9 @@
       <scope>runtime</scope>
     </dependency>
     <dependency>
-      <groupId>com.github.stefanbirkner</groupId>
-      <artifactId>system-rules</artifactId>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
       <scope>runtime</scope>
-      <exclusions>
-        <exclusion>
-          <artifactId>junit-dep</artifactId>
-          <groupId>*</groupId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.assertj</groupId>
@@ -191,8 +168,13 @@
       <scope>runtime</scope>
     </dependency>
     <dependency>
-      <groupId>pl.pragmatists</groupId>
-      <artifactId>JUnitParams</artifactId>
+      <groupId>org.apache.shiro</groupId>
+      <artifactId>shiro-core</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>jline</groupId>
+      <artifactId>jline</artifactId>
       <scope>runtime</scope>
     </dependency>
     <dependency>

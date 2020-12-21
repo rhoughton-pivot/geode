@@ -94,12 +94,13 @@ dependencies {
 
   testImplementation('pl.pragmatists:JUnitParams')
   testImplementation('org.assertj:assertj-core')
+  testImplementation('org.mockito:mockito-core')
+  testImplementation('junit:junit')
 
   integrationTestImplementation('junit:junit')
 
   distributedTestImplementation('junit:junit')
   distributedTestImplementation('org.assertj:assertj-core')
-  distributedTestImplementation('org.mockito:mockito-core')
   distributedTestRuntimeOnly('org.apache.derby:derby')
 
   acceptanceTestImplementation('com.github.stefanbirkner:system-rules') {
