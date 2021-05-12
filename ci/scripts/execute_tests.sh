@@ -119,7 +119,9 @@ EXEC_COMMAND="bash -c 'echo Building with: $SEP \
   cp gradlew gradlewStrict $SEP \
   sed -e 's/JAVA_HOME/GRADLE_JVM/g' -i.bak gradlewStrict $SEP \
   GRADLE_JVM=${JAVA_BUILD_PATH} JAVA_TEST_PATH=${JAVA_TEST_PATH} ./gradlewStrict ${GRADLE_ARGS} $SEP \
-  ${OPTIONAL_KILL_ALL_CMD}'"
+  exit_code=\$? $SEP \
+  (${OPTIONAL_KILL_ALL_CMD}) $SEP \
+  exit \${exit_code}'"
 
 echo "${EXEC_COMMAND}"
 ssh ${SSH_OPTIONS} geode@${INSTANCE_IP_ADDRESS} "${EXEC_COMMAND}"
