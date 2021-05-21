@@ -24,16 +24,16 @@
 {% macro plan_resource_gets(test) %}
 - get: geode-ci
   passed:
-  - Build
+  - build
 - in_parallel:
   - get: geode
     trigger: true
     passed:
-    - Build
+    - build
   - get: geode-build-version
     trigger: true
     passed:
-    - Build
+    - build
     version: every
 {% endmacro %}
 
@@ -146,7 +146,7 @@ groups:
   {%- for run_var in (benchmarks.flavors) %}
   - benchmark-{{ run_var.title }}
   {%- endfor %}
-- name: semver management
+- name: semver-management
   jobs:
   {%- for semverPiece in ['major', 'minor', 'patch'] %}
   - bump-{{ semverPiece }}
@@ -473,7 +473,7 @@ jobs:
   plan:
   - get: geode-ci
     passed: &benchmark-inputs
-    - Build
+    - build
   - get: alpine-tools-image
   - in_parallel:
     - get: geode
