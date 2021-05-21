@@ -93,7 +93,7 @@ GRADLE_GLOBAL_ARGS: ((gradle-global-args))
   {%- endfor -%}
   {%- endfor -%}
   {%- for run_var in (benchmarks.flavors) %}
-- Benchmark{{ run_var.title }}
+- benchmark-{{ run_var }}
   {%- endfor -%}
 {% endmacro %}
 
@@ -111,9 +111,9 @@ groups:
   - {{ build_test.name }}
   {{- all_gating_jobs() | indent(2) }}
   {%- if repository.upstream_fork != "apache" or repository.branch == "develop" or repository.branch.startswith("support/") %}
-  - PublishArtifacts
+  - publish-artifacts
   {%- endif %}
-  - UpdatePassingTokens
+  - update-passing-tokens
 - name: linux
   jobs:
   - {{ build_test.name }}
@@ -123,7 +123,7 @@ groups:
     {%- endfor -%}
   {%- endfor %}
   {%- for flavor in (benchmarks.flavors) %}
-  - Benchmark{{flavor.title}}
+  - benchmark-{{flavor}}
   {%- endfor %}
 - name: windows
   jobs:
@@ -144,12 +144,12 @@ groups:
 - name: benchmarks
   jobs:
   {%- for run_var in (benchmarks.flavors) %}
-  - benchmark-{{ run_var.title }}
+  - benchmark-{{ run_var }}
   {%- endfor %}
 - name: semver management
   jobs:
   {%- for semverPiece in ['major', 'minor', 'patch'] %}
-  - bump-{{ semverPiece.title() }}
+  - bump-{{ semverPiece }}
   {%- endfor %}
 
 resources:
@@ -246,7 +246,7 @@ resource_types:
     tag: latest
 jobs:
 {% for semverPiece in ['major', 'minor', 'patch'] -%}
-- name: bump-{{ semverPiece.title() }}
+- name: bump-{{ semverPiece }}
   serial: true
   plan:
   - get: geode-build-version
@@ -467,7 +467,7 @@ jobs:
         file: geode-passing-tokens/passing-build-tokens.json
 
 {% for run_var in (benchmarks.flavors) %}
-- name: benchmark-{{ run_var.title }}
+- name: benchmark-{{ run_var }}
   public: true
   max_in_flight: {{ run_var.max_in_flight }}
   plan:
@@ -486,7 +486,7 @@ jobs:
       version: every
     - put: concourse-metadata-resource
   - do:
-    - task: run_benchmarks{{ run_var.title }}
+    - task: run_benchmarks{{ run_var }}
       image: alpine-tools-image
       config:
         platform: linux
