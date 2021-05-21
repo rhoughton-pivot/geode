@@ -467,7 +467,7 @@ jobs:
         file: geode-passing-tokens/passing-build-tokens.json
 
 {% for run_var in (benchmarks.flavors) %}
-- name: benchmark-{{ run_var }}
+- name: benchmark-{{ run_var.title }}
   public: true
   max_in_flight: {{ run_var.max_in_flight }}
   plan:
