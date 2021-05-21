@@ -102,9 +102,9 @@ groups:
   jobs:
   - {{ build_test.name }}
   {{- all_gating_jobs() | indent(2) }}
-  - UpdatePassingTokens
+  - update-passing-tokens
   {%- if repository.upstream_fork != "apache" or repository.branch == "develop" or repository.branch.startswith("support/") %}
-  - PublishArtifacts
+  - publish-artifacts
   {%- endif %}
 - name: complete
   jobs:
@@ -418,7 +418,7 @@ jobs:
     - get: geode
       passed: &update-token-passed-anchor
 {%- if repository.upstream_fork != "apache" or repository.branch == "develop" or repository.branch.startswith("support/") %}
-      - PublishArtifacts
+      - publish-artifacts
 {% else %}
       {{- all_gating_jobs() | indent(6) }}
 {% endif %}
