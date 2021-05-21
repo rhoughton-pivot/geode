@@ -184,7 +184,7 @@ jobs:
       trigger: true
       passed: [pin-geode]
     - get: alpine-tools-image
-  - task: run-distributed-test-N-times
+  - task: run-distributed-test-n-times
     image: alpine-tools-image
     config:
       platform: linux
