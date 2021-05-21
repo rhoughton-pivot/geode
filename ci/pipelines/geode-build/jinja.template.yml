@@ -144,7 +144,7 @@ groups:
 - name: benchmarks
   jobs:
   {%- for run_var in (benchmarks.flavors) %}
-  - benchmark-{{ run_var }}
+  - benchmark-{{ run_var.title }}
   {%- endfor %}
 - name: semver management
   jobs:
