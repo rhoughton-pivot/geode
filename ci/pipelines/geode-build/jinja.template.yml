@@ -93,7 +93,7 @@ GRADLE_GLOBAL_ARGS: ((gradle-global-args))
   {%- endfor -%}
   {%- endfor -%}
   {%- for run_var in (benchmarks.flavors) %}
-- benchmark-{{ run_var }}
+- benchmark-{{ run_var.title }}
   {%- endfor -%}
 {% endmacro %}
 
@@ -123,7 +123,7 @@ groups:
     {%- endfor -%}
   {%- endfor %}
   {%- for flavor in (benchmarks.flavors) %}
-  - benchmark-{{flavor}}
+  - benchmark-{{flavor.title}}
   {%- endfor %}
 - name: windows
   jobs:
