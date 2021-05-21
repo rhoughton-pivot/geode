@@ -23,7 +23,7 @@ groups:
   jobs:
   - {{ build_test.name }}
 {%- for test in tests %}
-  {%- for java_test_version in (java_test_versions) if not java_test_version.name.endswith("jdk8") or test.name == "Unit" or test.name == "stress-new" or test.name == "distributed" %}
+  {%- for java_test_version in (java_test_versions) if not java_test_version.name.endswith("jdk8") or test.name == "unit" or test.name == "stress-new" or test.name == "distributed" %}
   - {{test.name}}-test-{{java_test_version.name}}
   {%- endfor %}
 {%- endfor %}

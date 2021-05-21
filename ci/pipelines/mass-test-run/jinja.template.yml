@@ -209,7 +209,7 @@ jobs:
             ./fly -t ${TARGET_NAME} trigger-job -j ${PIPELINE_PREFIX}mass-test-run/distributed-test-openjdk8
           done
 
-{%- for test in tests if test.name=="Distributed" %}
+{%- for test in tests if test.name=="distributed" %}
   {%- set parameters = {} %}
   {%- do deep_merge(parameters, test) %}
   {%- for java_test_version in (java_test_versions) if java_test_version.name=="openjdk8" -%}
